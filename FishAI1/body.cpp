@@ -60,16 +60,16 @@ void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices,
 		indices.push_back(2 * bodyResolution + 2);
 
 		//TODO DELETE
-		/*v = vertices.data();
+		//v = vertices.data();
 		for (int j = 0; j < vertices.size(); j++)
 		{
-			std::cout << v[j] << std::endl;
+			std::cout << vertices[j] << std::endl;
 		}
-		i = indices.data();
+		//i = indices.data();
 		for (int j = 0; j < indices.size(); j+=3)
 		{
-			std::cout << i[j] << ", " << i[j+1] << ", " << i[j+2] << std::endl;
-		}*/
+			std::cout << indices[j] << ", " << indices[j+1] << ", " << indices[j+2] << std::endl;
+		}
 		getchar();	
 	}
 	else
@@ -87,7 +87,8 @@ void Body::init(GLint bodyResolution)
 
 	this->createStructure(bodyResolution, vertices, indices);
 
-	for (int j = 0; j < sizeof(indices)/sizeof(GLuint); j += 3)
+	//TODO DELETE
+	for (int j = 0; j < indices.size(); j += 3)
 	{
 		std::cout << indices[j] << ", " << indices[j + 1] << ", " << indices[j + 2] << std::endl;
 	}

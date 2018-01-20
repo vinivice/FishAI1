@@ -3,6 +3,7 @@
 #include<GLFW\glfw3.h>
 #include<Box2D\Box2D.h>
 #include<vector>
+#include<ctime>
 
 #include"graphics.h"
 #include"body.h"
@@ -124,9 +125,14 @@ int main(int argc, char* argv[])
 		std::cout << "x: " << position.x << "\ty: " << position.y << "\ttheta: " << angle << std::endl;
 	}
 	
+	clock_t timeInterval;
+	timeInterval = clock();
 	while (!glfwWindowShouldClose(window))
 	{
+		std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
+		//for(int a = 0; a < 1000000; a++){}
 		glfwPollEvents();
+		timeInterval = clock();
 	}
 	/*************************/
 

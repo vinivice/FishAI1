@@ -2,6 +2,23 @@
 
 Camera mainCamera;
 
+Camera::Camera()
+{
+	this->windowWidth = 800;
+	this->windowHeight = 600;
+	this->zoom = 1.0f;
+	this->position = b2Vec2(0.0f, 0.0f);
+	this->extension = 25.0f; //Test values
+}
+
+//---------
+
+Shader::Shader(char* vsCode, char* fsCode)
+{
+	this->vertexShaderCode = vsCode;
+	this->fragmentShaderCode = fsCode;
+}
+
 GLuint Shader::createShader(const char* shaderCode, GLenum type)
 {
 	GLuint shaderID = glCreateShader(type);

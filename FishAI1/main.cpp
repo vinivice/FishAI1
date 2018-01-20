@@ -13,7 +13,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 	switch (key)
 	{
 	case GLFW_KEY_ESCAPE:
-		glfwWindowShouldClose(window);
+		glfwSetWindowShouldClose(window, GL_TRUE);
 		break;
 	}
 }
@@ -21,12 +21,15 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 int main(int argc, char* argv[])
 {
+	//TEST
 	std::vector<b2Vec2> lala;
 	lala.push_back(b2Vec2(0.0f, 0.0f));
-	Body testBody(8);
-	//Body testBody2(16);
+	Body testBody, testBody2;
+	testBody.init(4);
+	testBody.init(3);
+	testBody2.init(3);
 	getchar();
-
+	//glDrawArrays(GL_LINE)
 	//TODO DELETE
 	std::cout << "Hello World!\n";
 
@@ -120,7 +123,11 @@ int main(int argc, char* argv[])
 		float32 angle = body->GetAngle();
 		std::cout << "x: " << position.x << "\ty: " << position.y << "\ttheta: " << angle << std::endl;
 	}
-
+	
+	while (!glfwWindowShouldClose(window))
+	{
+		glfwPollEvents();
+	}
 	/*************************/
 
 	//TODO DELETE

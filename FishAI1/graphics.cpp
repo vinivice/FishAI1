@@ -71,13 +71,23 @@ b2Vec2 Camera::convertWorldToScreen(b2Vec2 worldPosition)
 
 void Camera::zoomIn()
 {
-	this->zoom -= 0.1;
+	this->zoom -= 0.1f;
+	if (this->zoom < 0.1f)
+	{
+		this->zoom = 0.1f;
+	}
 	this->updateProjectionMatrix();
 }
 
 void Camera::zoomOut()
 {
-	this->zoom += 0.1;
+	this->zoom += 0.1f;
+	this->updateProjectionMatrix();
+}
+
+void Camera::move(GLfloat dx, GLfloat dy)
+{
+	this->position += this->zoom * b2Vec2(dx, dy);
 	this->updateProjectionMatrix();
 }
 

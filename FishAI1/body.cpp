@@ -2,7 +2,7 @@
 #include <cmath>
 
 //bool Body::structureIsCreated = false;
-const GLfloat Body::borderSize = 0.1f;
+const GLfloat Body::borderSize = 0.2f;
 GLuint Body::VAO;
 Shader Body::shader;
 GLuint Body::numberVertices;
@@ -51,12 +51,13 @@ void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices,
 		indices.push_back((k+3) % (2*bodyResolution));
 	}
 
+	GLfloat eyeScaleConstant = 0.9;
 	vertices.push_back(0.0f); 
 	vertices.push_back(0.0f);
-	vertices.push_back(0.8 * innerRadius * sqrt(3.0f) / 2.0f);
-	vertices.push_back(0.8 * innerRadius / 2.0f);
-	vertices.push_back(0.8 * innerRadius * sqrt(3.0f) / 2.0f);
-	vertices.push_back(-0.8 * innerRadius / 2.0f);
+	vertices.push_back(eyeScaleConstant * innerRadius * sqrt(3.0f) / 2.0f);
+	vertices.push_back(eyeScaleConstant * innerRadius / 2.0f);
+	vertices.push_back(eyeScaleConstant * innerRadius * sqrt(3.0f) / 2.0f);
+	vertices.push_back(-eyeScaleConstant * innerRadius / 2.0f);
 
 	indices.push_back(2 * bodyResolution);
 	indices.push_back(2 * bodyResolution + 1);

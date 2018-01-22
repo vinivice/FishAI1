@@ -30,7 +30,31 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			mainCamera.zoomOut();
 		}
 		break;
-		//TODO add WASD to move cam 
+		//TODO add WASD to move cam
+	case GLFW_KEY_W:
+		if (action != GLFW_RELEASE)
+		{
+			mainCamera.move(0.0f, 1.0f);
+		}
+		break;
+	case GLFW_KEY_S:
+		if (action != GLFW_RELEASE)
+		{
+			mainCamera.move(0.0f, -1.0f);
+		}
+		break;
+	case GLFW_KEY_A:
+		if (action != GLFW_RELEASE)
+		{
+			mainCamera.move(-1.0f, 0.0f);
+		}
+		break;
+	case GLFW_KEY_D:
+		if (action != GLFW_RELEASE)
+		{
+			mainCamera.move(1.0f, 0.0f);
+		}
+		break;
 	}
 }
 /**********************************/

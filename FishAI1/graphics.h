@@ -11,7 +11,7 @@ public:
 	void updateProjectionMatrix();
 	void zoomIn();
 	void zoomOut();
-
+	void move(GLfloat dx, GLfloat dy);
 
 	GLint windowWidth;
 	GLint windowHeight;

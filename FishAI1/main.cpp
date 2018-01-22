@@ -7,6 +7,8 @@
 
 #include"graphics.h"
 #include"body.h"
+#include"shader_codes.h"
+
 
 /******* CALLBACK FUNCTIONS *******/
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -22,15 +24,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 int main(int argc, char* argv[])
 {
-	//TEST
-	std::vector<b2Vec2> lala;
-	lala.push_back(b2Vec2(0.0f, 0.0f));
-	Body testBody, testBody2;
-	testBody.init(4);
-	testBody.init(3);
-	testBody2.init(3);
-	getchar();
-	//glDrawArrays(GL_LINE)
+	GLuint fps = 60;
 	//TODO DELETE
 	std::cout << "Hello World!\n";
 
@@ -54,7 +48,6 @@ int main(int argc, char* argv[])
 	if (nullptr == window)
 	{
 		std::cout << "WINDOW FAIL\n";
-		getchar();
 		glfwTerminate();
 		return EXIT_FAILURE;
 	}
@@ -68,17 +61,17 @@ int main(int argc, char* argv[])
 	if(GLEW_OK != glewInit())
 	{
 		std::cout << "GLEW FAIL\n";
-		getchar();
 		return EXIT_FAILURE;
 	}
+	glViewport(0, 0, mainCamera.windowWidth, mainCamera.windowHeight);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	/**********************************/
 
 	//Shader testShader((char *)"VS CODE\n", (char *)"FS CODE\n");
 	//testShader.createShaderProgram();
 
 	
-	glViewport(0, 0, mainCamera.windowWidth, mainCamera.windowHeight);
-
+	
 	/******* SET CALLBACKS *******/
 	glfwSetKeyCallback(window, keyCallback);
 	/*****************************/
@@ -116,6 +109,15 @@ int main(int argc, char* argv[])
 
 	/***************************/
 
+	//TEST
+	std::vector<b2Vec2> lala;
+	lala.push_back(b2Vec2(0.0f, 0.0f));
+	Body testBody, testBody2;
+	Shader bodyShader(fishVS, fishFS);
+	testBody.init(4, bodyShader);
+	getchar();
+	//glDrawArrays(GL_LINE)
+
 	/******* MAIN LOOP *******/
 	for (int32 i = 0; i < 100; i++)
 	{
@@ -125,18 +127,33 @@ int main(int argc, char* argv[])
 		std::cout << "x: " << position.x << "\ty: " << position.y << "\ttheta: " << angle << std::endl;
 	}
 	
-	clock_t timeInterval;
-	timeInterval = clock();
+	clock_t currentTime, previousTime;
+	currentTime = previousTime = clock();
+	GLfloat timeInterval = 0.0f;
+	GLfloat period = 1000.0f / fps;
 	while (!glfwWindowShouldClose(window))
 	{
-		std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
-		//for(int a = 0; a < 1000000; a++){}
 		glfwPollEvents();
-		timeInterval = clock();
+		currentTime	 = clock();
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		timeInterval += 1000.0 * (currentTime - previousTime) / CLOCKS_PER_SEC;
+		while (timeInterval >= period) 
+		{
+			std::cout << "Time: " << timeInterval << std::endl; //TEST
+			timeInterval -= period;
+		}
+		//std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
+		//for(int a = 0; a < 1000000; a++){}
+		//timeInterval = clock();
+
+		glBindVertexArray(0);
+		glfwSwapBuffers(window);
+
+		previousTime = currentTime;
 	}
 	/*************************/
 
-	//TODO DELETE
-	//getchar();
 	return 0;
 }

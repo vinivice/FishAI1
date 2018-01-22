@@ -134,6 +134,7 @@
     <ClInclude Include="body.h" />
     <ClInclude Include="graphics.h" />
     <ClInclude Include="mind.h" />
+    <ClInclude Include="shader_codes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

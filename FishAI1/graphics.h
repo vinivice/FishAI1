@@ -7,14 +7,17 @@ class Camera
 {
 public:
 	Camera();
+	b2Vec2 convertWorldToScreen(b2Vec2 worldPosition);
+	void updateProjectionMatrix();
 
-	int32 windowWidth;
-	int32 windowHeight;
+	GLint windowWidth;
+	GLint windowHeight;
+	GLfloat projectionMatrix[16];
 	
 private:
 	b2Vec2 position;
-	float32 extension; //Distance viewed, in world coordinates, from top to bottom of the screen
-	float32 zoom;
+	GLfloat extension; //Distance viewed, in world coordinates, from top to center of the screen
+	GLfloat zoom;
 
 };
 
@@ -25,13 +28,14 @@ extern Camera mainCamera;
 class Shader
 {
 public:
-	Shader(char* vsCode, char* fsCode);
+	Shader();
+	Shader(const char* vsCode, const char* fsCode);
 	bool createShaderProgram();
-	GLuint shaderPTR;
+	GLuint shaderProgram;
 
 private:
-	char* vertexShaderCode;
-	char* fragmentShaderCode;
+	const char* vertexShaderCode;
+	const char* fragmentShaderCode;
 	
 	GLuint createShader(const char* shaderCode, GLenum type);
 	

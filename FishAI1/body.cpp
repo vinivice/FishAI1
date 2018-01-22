@@ -1,7 +1,6 @@
 #include"body.h"
 #include <cmath>
 
-//bool Body::structureIsCreated = false;
 const GLfloat Body::borderSize = 0.2f;
 GLuint Body::VAO;
 Shader Body::shader;
@@ -13,6 +12,7 @@ Body::Body(b2World* world)
 	bdDef.type = b2_dynamicBody;
 	bdDef.position.Set(0.0f, 4.0f);
 	this->phisicalBody = world->CreateBody(&bdDef);
+	//TODO Complete definition of body (add fixture etc)
 }
 
 void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &indices)
@@ -23,8 +23,6 @@ void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices,
 
 	GLfloat x = 1.0f, y = 0.0f, x2, y2;
 		
-	//std::vector<GLfloat> vertices;
-	//std::vector<GLuint> indices;
 	GLfloat innerRadius = 1.0f - this->borderSize;
 	int k;
 	for (k = 0; k < bodyResolution; k++)
@@ -64,20 +62,6 @@ void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices,
 	indices.push_back(2 * bodyResolution + 2);
 
 	this->numberVertices = indices.size();
-	/*
-	//TODO DELETE
-	//v = vertices.data();
-	for (int j = 0; j < vertices.size(); j++)
-	{
-		std::cout << vertices[j] << std::endl;
-	}
-	//i = indices.data();
-	for (int j = 0; j < indices.size(); j+=3)
-	{
-		std::cout << indices[j] << ", " << indices[j+1] << ", " << indices[j+2] << std::endl;
-	}
-	getchar();	
-	*/
 }
 
 void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &indices)
@@ -92,7 +76,7 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &indice
 	i = indices.data();
 	iSize = indices.size() * sizeof(GLuint);
 
-	glGenVertexArrays(1, &(this->VAO)); //PROBLEM HERE
+	glGenVertexArrays(1, &(this->VAO)); 
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
@@ -111,9 +95,6 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &indice
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-
-	//this->structureIsCreated = true;	
 }
 
 

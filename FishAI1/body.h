@@ -9,7 +9,7 @@ public:
 	Body(b2World* world);
 	bool init(GLint bodyResolution, Shader shaderInput);
 	void draw(Camera* camera);
-	b2Body* phisicalBody; //TODO Constructor to add phisicalBody
+	b2Body* phisicalBody; 
 
 private:
 	static GLuint VAO;

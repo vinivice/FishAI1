@@ -30,7 +30,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			mainCamera.zoomOut();
 		}
 		break;
-		//TODO add WASD to move cam
 	case GLFW_KEY_W:
 		if (action != GLFW_RELEASE)
 		{

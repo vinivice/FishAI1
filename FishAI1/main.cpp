@@ -18,6 +18,19 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 	case GLFW_KEY_ESCAPE:
 		glfwSetWindowShouldClose(window, GL_TRUE);
 		break;
+	case GLFW_KEY_I:
+		if(action == GLFW_PRESS)
+		{
+			mainCamera.zoomIn();
+		}
+		break;
+	case GLFW_KEY_O:
+		if (action == GLFW_PRESS)
+		{
+			mainCamera.zoomOut();
+		}
+		break;
+		//TODO add WASD to move cam 
 	}
 }
 /**********************************/
@@ -112,9 +125,10 @@ int main(int argc, char* argv[])
 	//TEST
 	std::vector<b2Vec2> lala;
 	lala.push_back(b2Vec2(0.0f, 0.0f));
-	Body testBody, testBody2;
+	Body testBody(&world);
 	Shader bodyShader(fishVS, fishFS);
-	testBody.init(4, bodyShader);
+	//testBody.phisicalBody->SetTransform(b2Vec2(0.0f, 0.0f), 0.0f);
+	testBody.init(16, bodyShader);
 	getchar();
 	//glDrawArrays(GL_LINE)
 
@@ -143,13 +157,15 @@ int main(int argc, char* argv[])
 		{
 			std::cout << "Time: " << timeInterval << std::endl; //TEST
 			timeInterval -= period;
+			testBody.draw(&mainCamera);//TODO CHANGE TO VECTOR
+			glfwSwapBuffers(window);
 		}
 		//std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
 		//for(int a = 0; a < 1000000; a++){}
 		//timeInterval = clock();
 
 		glBindVertexArray(0);
-		glfwSwapBuffers(window);
+		//glfwSwapBuffers(window);
 
 		previousTime = currentTime;
 	}

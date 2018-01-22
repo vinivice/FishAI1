@@ -9,6 +9,9 @@ public:
 	Camera();
 	b2Vec2 convertWorldToScreen(b2Vec2 worldPosition);
 	void updateProjectionMatrix();
+	void zoomIn();
+	void zoomOut();
+
 
 	GLint windowWidth;
 	GLint windowHeight;

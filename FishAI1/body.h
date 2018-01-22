@@ -6,12 +6,14 @@
 class Body
 {
 public:
+	Body(b2World* world);
 	bool init(GLint bodyResolution, Shader shaderInput);
 	void draw(Camera* camera);
 	b2Body* phisicalBody; //TODO Constructor to add phisicalBody
 
 private:
 	static GLuint VAO;// , VBO, EBO; //TODO Check if VBO and EBO are needed
+	static GLuint numberVertices;
 	//static bool structureIsCreated;
 	static Shader shader;
 	static const GLfloat borderSize; //Interval (0, 1)

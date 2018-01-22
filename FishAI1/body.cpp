@@ -5,6 +5,15 @@
 const GLfloat Body::borderSize = 0.1f;
 GLuint Body::VAO;
 Shader Body::shader;
+GLuint Body::numberVertices;
+
+Body::Body(b2World* world)
+{
+	b2BodyDef bdDef;
+	bdDef.type = b2_dynamicBody;
+	bdDef.position.Set(0.0f, 4.0f);
+	this->phisicalBody = world->CreateBody(&bdDef);
+}
 
 void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &indices)
 {
@@ -44,15 +53,16 @@ void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices,
 
 	vertices.push_back(0.0f); 
 	vertices.push_back(0.0f);
+	vertices.push_back(0.8 * innerRadius * sqrt(3.0f) / 2.0f);
 	vertices.push_back(0.8 * innerRadius / 2.0f);
 	vertices.push_back(0.8 * innerRadius * sqrt(3.0f) / 2.0f);
 	vertices.push_back(-0.8 * innerRadius / 2.0f);
-	vertices.push_back(0.8 * innerRadius * sqrt(3.0f) / 2.0f);
 
 	indices.push_back(2 * bodyResolution);
 	indices.push_back(2 * bodyResolution + 1);
 	indices.push_back(2 * bodyResolution + 2);
 
+	this->numberVertices = indices.size();
 	/*
 	//TODO DELETE
 	//v = vertices.data();
@@ -159,8 +169,8 @@ void Body::draw(Camera* camera)
 	glUniformMatrix4fv(2, 1, GL_FALSE, model);
 	glUniformMatrix4fv(3, 1, GL_FALSE, camera->projectionMatrix);
 
-	glBindVertexArray(this->shader.shaderProgram);
-
+	glBindVertexArray(this->VAO);
+	glDrawElements(GL_TRIANGLES, this->numberVertices, GL_UNSIGNED_INT, 0);
 
 
 

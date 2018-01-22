@@ -69,6 +69,18 @@ b2Vec2 Camera::convertWorldToScreen(b2Vec2 worldPosition)
 
 }
 
+void Camera::zoomIn()
+{
+	this->zoom -= 0.1;
+	this->updateProjectionMatrix();
+}
+
+void Camera::zoomOut()
+{
+	this->zoom += 0.1;
+	this->updateProjectionMatrix();
+}
+
 //-------------------------------------------
 
 Shader::Shader()

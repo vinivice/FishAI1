@@ -1,13 +1,14 @@
-#include<iostream>
-#include<GL\glew.h>
-#include<GLFW\glfw3.h>
-#include<Box2D\Box2D.h>
-#include<vector>
-#include<ctime>
-
-#include"graphics.h"
-#include"body.h"
-#include"shader_codes.h"
+#include <iostream>
+#include <GL\glew.h>
+#include <GLFW\glfw3.h>
+#include <Box2D\Box2D.h>
+#include <vector>
+#include <ctime>
+		 
+#include "graphics.h"
+#include "body.h"
+#include "shader_codes.h"
+#include "ring.h"
 
 
 bool pause = true;
@@ -127,7 +128,7 @@ int main(int argc, char* argv[])
 	/******* BOX2D SETUP *******/
 	b2Vec2 gravity(0.0f, -10.0f);
 	b2World world(gravity);
-
+	/*
 	b2BodyDef groundBodyDef;
 	groundBodyDef.position.Set(0.0f, -10.0f);
 
@@ -135,8 +136,8 @@ int main(int argc, char* argv[])
 	
 	b2PolygonShape groundBox;
 	groundBox.SetAsBox(50.0f, 10.0f);
-	groundBody->CreateFixture(&groundBox, 0.0f);
-
+	groundBody->CreateFixture(&groundBox, 0.0f);*/
+	/*
 	b2BodyDef bodyDef;
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.position.Set(0.0f, 4.0f);
@@ -148,21 +149,21 @@ int main(int argc, char* argv[])
 	fixtureDef.density = 1.0f;
 	fixtureDef.friction = 0.3f;
 	body->CreateFixture(&fixtureDef);
-	float32 timeStep = 1.0f / 60.0f;
-	int32 velocityIterations = 6;
-	int32 positionIterations = 2;
 
+	float32 timeStep = 1.0f / 60.0f;
+	*/
 	/***************************/
 
 	std::vector<Body *> fishes;
 	
 	//TEST
-	std::vector<b2Vec2> lala;
-	lala.push_back(b2Vec2(0.0f, 0.0f));
-	Shader bodyShader(fishVS, fishFS);
-	Body::init(32, bodyShader);
-	fishes.push_back(new Body(&world, 0.0f, 100.0f, 0.0f, generator));
-	fishes.push_back(new Body(&world, 0.1f, 20.0f, b2_pi / 2.0f, generator));
+	//std::vector<b2Vec2> lala;
+	//lala.push_back(b2Vec2(0.0f, 0.0f));
+	//Shader bodyShader(fishVS, fishFS);
+	Shader ringShader(ringVS, ringFS);
+	Body::init(32, Shader(fishVS, fishFS));
+	fishes.push_back(new Body(&world, -0.1f, 27.0f, 0.0f, generator));
+	fishes.push_back(new Body(&world, -1.2f, -20.0f, b2_pi / 2.0f, generator));
 	//testBody.phisicalBody->SetTransform(b2Vec2(0.0f, 0.0f), 0.0f);
 	//fishes.back()->init(32, bodyShader);
 	//getchar();
@@ -177,11 +178,15 @@ int main(int argc, char* argv[])
 		std::cout << "x: " << position.x << "\ty: " << position.y << "\ttheta: " << angle << std::endl;
 	}*/
 	
+	Ring ring(&world, 25.0f, 4, ringShader);
 	GLint i;
 	clock_t currentTime, previousTime;
 	currentTime = previousTime = clock();
 	GLfloat timeInterval = 0.0f;
 	GLfloat period = 1.0f / fps;
+	int32 velocityIterations = 6;
+	int32 positionIterations = 2;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
@@ -202,6 +207,7 @@ int main(int argc, char* argv[])
 		//std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
 		//for(int a = 0; a < 1000000; a++){}
 		//timeInterval = clock();
+		ring.draw(&mainCamera);
 		for (i = 0; i < fishes.size(); i++)
 		{
 			fishes[i]->draw(&mainCamera);//TODO CHANGE TO VECTOR

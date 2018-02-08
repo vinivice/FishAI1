@@ -1,7 +1,7 @@
 #pragma once
-#include<iostream>
-#include<GL\glew.h>
-#include<Box2D\Box2D.h>
+#include <iostream>
+#include <GL\glew.h>
+#include <Box2D\Box2D.h>
 
 class Camera
 {

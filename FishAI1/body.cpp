@@ -1,5 +1,5 @@
-#include"body.h"
-#include<cmath>
+#include "body.h"
+#include <cmath>
 
 const GLfloat Body::borderSize = 0.2f;
 GLuint Body::innerVAO;

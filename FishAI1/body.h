@@ -1,9 +1,9 @@
 #pragma once
-#include"graphics.h"
-#include<vector>
-#include<random>
-#include<ctime>
-#include<iostream> //TODO DELETE
+#include "graphics.h"
+#include <vector>
+#include <random>
+#include <ctime>
+#include <iostream> //TODO DELETE
 
 #define CHROMOSSOMES_SIZE 6
 #define STANDARD_RADIUS 0.30f

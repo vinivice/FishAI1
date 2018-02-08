@@ -16,9 +16,9 @@ Camera::Camera()
 
 void Camera::updateProjectionMatrix()
 {
-	GLfloat aspect = this->windowWidth / this->windowHeight;
+	GLfloat aspect = (GLfloat) this->windowWidth / this->windowHeight;
 
-	b2Vec2 extent(aspect*this->extension, this->extension);
+	b2Vec2 extent(aspect * this->extension, this->extension);
 
 	extent *= this->zoom;
 

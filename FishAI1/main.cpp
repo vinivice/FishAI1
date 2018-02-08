@@ -10,6 +10,7 @@
 #include"shader_codes.h"
 
 
+bool pause = true;
 /******* CALLBACK FUNCTIONS *******/
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -19,13 +20,13 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		glfwSetWindowShouldClose(window, GL_TRUE);
 		break;
 	case GLFW_KEY_I:
-		if(action == GLFW_PRESS)
+		if (action != GLFW_RELEASE)
 		{
 			mainCamera.zoomIn();
 		}
 		break;
 	case GLFW_KEY_O:
-		if (action == GLFW_PRESS)
+		if (action != GLFW_RELEASE)
 		{
 			mainCamera.zoomOut();
 		}
@@ -54,13 +55,21 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			mainCamera.move(1.0f, 0.0f);
 		}
 		break;
+	case GLFW_KEY_P:
+		if (action == GLFW_PRESS)
+		{
+			pause = !pause;
+		}
+		break;
 	}
 }
 /**********************************/
 
 int main(int argc, char* argv[])
 {
-	GLuint fps = 60;
+	GLuint fps = 120;
+	std::default_random_engine generator(time(0));
+
 	//TODO DELETE
 	std::cout << "Hello World!\n";
 
@@ -145,29 +154,34 @@ int main(int argc, char* argv[])
 
 	/***************************/
 
+	std::vector<Body *> fishes;
+	
 	//TEST
 	std::vector<b2Vec2> lala;
 	lala.push_back(b2Vec2(0.0f, 0.0f));
-	Body testBody(&world);
 	Shader bodyShader(fishVS, fishFS);
+	Body::init(32, bodyShader);
+	fishes.push_back(new Body(&world, 0.0f, 100.0f, 0.0f, generator));
+	fishes.push_back(new Body(&world, 0.1f, 20.0f, b2_pi / 2.0f, generator));
 	//testBody.phisicalBody->SetTransform(b2Vec2(0.0f, 0.0f), 0.0f);
-	testBody.init(16, bodyShader);
-	getchar();
+	//fishes.back()->init(32, bodyShader);
+	//getchar();
 	//glDrawArrays(GL_LINE)
 
 	/******* MAIN LOOP *******/
-	for (int32 i = 0; i < 100; i++)
+	/*for (int32 i = 0; i < 100; i++)
 	{
 		world.Step(timeStep, velocityIterations, positionIterations);
 		b2Vec2 position = body->GetPosition();
 		float32 angle = body->GetAngle();
 		std::cout << "x: " << position.x << "\ty: " << position.y << "\ttheta: " << angle << std::endl;
-	}
+	}*/
 	
+	GLint i;
 	clock_t currentTime, previousTime;
 	currentTime = previousTime = clock();
 	GLfloat timeInterval = 0.0f;
-	GLfloat period = 1000.0f / fps;
+	GLfloat period = 1.0f / fps;
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
@@ -175,17 +189,24 @@ int main(int argc, char* argv[])
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		timeInterval += 1000.0 * (currentTime - previousTime) / CLOCKS_PER_SEC;
-		while (timeInterval >= period) 
+		if (!pause)
 		{
-			std::cout << "Time: " << timeInterval << std::endl; //TEST
-			timeInterval -= period;
-			testBody.draw(&mainCamera);//TODO CHANGE TO VECTOR
-			glfwSwapBuffers(window);
+			timeInterval += 1.0 * (currentTime - previousTime) / CLOCKS_PER_SEC;
+			while (timeInterval >= period)
+			{
+				world.Step(period, velocityIterations, positionIterations);
+				//std::cout << "Time: " << timeInterval << std::endl; //TEST
+				timeInterval -= period;
+			}
 		}
 		//std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
 		//for(int a = 0; a < 1000000; a++){}
 		//timeInterval = clock();
+		for (i = 0; i < fishes.size(); i++)
+		{
+			fishes[i]->draw(&mainCamera);//TODO CHANGE TO VECTOR
+		}
+		glfwSwapBuffers(window);
 
 		glBindVertexArray(0);
 		//glfwSwapBuffers(window);

@@ -1,21 +1,51 @@
 #include"body.h"
-#include <cmath>
+#include<cmath>
 
 const GLfloat Body::borderSize = 0.2f;
-GLuint Body::VAO;
+GLuint Body::innerVAO;
+GLuint Body::outerVAO;
 Shader Body::shader;
-GLuint Body::numberVertices;
+GLuint Body::numberInnerVertices;
+GLuint Body::numberOuterVertices;
 
-Body::Body(b2World* world)
+Body::Body(b2World* world, float32 px, float32 py, float32 angle, std::default_random_engine& generator)
 {
+	//Random body constructor
+	std::uniform_int_distribution<unsigned short> distribution(0, 255);
+	for (int i = 0; i < CHROMOSSOMES_SIZE; i++)
+	{
+		this->chromossomes[i] = (unsigned char)distribution(generator);
+		//std::cout << std::hex << +this->chromossomes[i] << std::endl;
+	}
+
+	this->color[0] = this->chromossomes[2] / 255.0f;
+	this->color[1] = this->chromossomes[3] / 255.0f;
+	this->color[2] = this->chromossomes[4] / 255.0f;
+
+
+	//std::cout << std::hex << ULONG_MAX << std::endl;
+	//getchar();
+
+
 	b2BodyDef bdDef;
 	bdDef.type = b2_dynamicBody;
-	bdDef.position.Set(0.0f, 4.0f);
+	bdDef.position.Set(px, py);
+	bdDef.angle = angle;
+	bdDef.userData = this;
 	this->phisicalBody = world->CreateBody(&bdDef);
+	b2CircleShape bodyShape;
+	bodyShape.m_p.SetZero();
+	GLbyte parameter = *(GLbyte*)(this->chromossomes + 1);
+	bodyShape.m_radius = STANDARD_RADIUS * (1 + parameter / 255.0f);
+	b2FixtureDef bodyFixtureDef;
+	bodyFixtureDef.shape = &bodyShape;
+	bodyFixtureDef.density = 1.0f;
+	this->phisicalBody->CreateFixture(&bodyFixtureDef);
+
 	//TODO Complete definition of body (add fixture etc)
 }
 
-void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &indices)
+void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices)
 {
 	GLfloat theta = 2 * b2_pi / bodyResolution;
 	GLfloat sinValue = std::sin(theta);
@@ -23,7 +53,7 @@ void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices,
 
 	GLfloat x = 1.0f, y = 0.0f, x2, y2;
 		
-	GLfloat innerRadius = 1.0f - this->borderSize;
+	GLfloat innerRadius = 1.0f - borderSize;
 	int k;
 	for (k = 0; k < bodyResolution; k++)
 	{
@@ -37,17 +67,24 @@ void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices,
 		x = x2;
 		y = y2;
 	}
+
+	innerIndices.push_back(2 * bodyResolution);
+
 	for (k = 0; k < 2*bodyResolution; k+=2)
 	{
-		//Triangle 1
-		indices.push_back(k%(2*bodyResolution));
-		indices.push_back((k+1) % (2*bodyResolution));
-		indices.push_back((k+2) % (2*bodyResolution));
-		//Triangle 2  
-		indices.push_back((k+2) % (2*bodyResolution));
-		indices.push_back((k+1) % (2*bodyResolution));
-		indices.push_back((k+3) % (2*bodyResolution));
+		//Inner triangle
+		innerIndices.push_back(k + 1);
+		//Outer triangle 1
+		outerIndices.push_back(k%(2*bodyResolution));
+		outerIndices.push_back((k+1) % (2*bodyResolution));
+		outerIndices.push_back((k+2) % (2*bodyResolution));
+		//Outer triangle 2  
+		outerIndices.push_back((k+2) % (2*bodyResolution));
+		outerIndices.push_back((k+1) % (2*bodyResolution));
+		outerIndices.push_back((k+3) % (2*bodyResolution));
 	}
+
+	innerIndices.push_back(1);
 
 	GLfloat eyeScaleConstant = 0.9;
 	vertices.push_back(0.0f); 
@@ -57,36 +94,57 @@ void Body::createStructure(GLint bodyResolution, std::vector<GLfloat> &vertices,
 	vertices.push_back(eyeScaleConstant * innerRadius * sqrt(3.0f) / 2.0f);
 	vertices.push_back(-eyeScaleConstant * innerRadius / 2.0f);
 
-	indices.push_back(2 * bodyResolution);
-	indices.push_back(2 * bodyResolution + 1);
-	indices.push_back(2 * bodyResolution + 2);
+	outerIndices.push_back(2 * bodyResolution);
+	outerIndices.push_back(2 * bodyResolution + 1);
+	outerIndices.push_back(2 * bodyResolution + 2);
 
-	this->numberVertices = indices.size();
+	numberInnerVertices = innerIndices.size();
+	numberOuterVertices = outerIndices.size();
 }
 
-void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &indices)
+void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices)
 {
-	GLuint VBO, EBO;
+	GLuint VBO, innerEBO, outerEBO;
 	GLfloat *v;
-	GLuint *i, vSize, iSize;
+	GLuint *ii, *oi, vSize, iiSize, oiSize;
 
 	v = vertices.data();
 	vSize = vertices.size() * sizeof(GLfloat);
 
-	i = indices.data();
-	iSize = indices.size() * sizeof(GLuint);
+	ii = innerIndices.data();
+	iiSize = innerIndices.size() * sizeof(GLuint);
 
-	glGenVertexArrays(1, &(this->VAO)); 
+	oi = outerIndices.data();
+	oiSize = outerIndices.size() * sizeof(GLuint);
+
+	//innerVAO
+	glGenVertexArrays(1, &innerVAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	glGenBuffers(1, &innerEBO);
 
-	glBindVertexArray(this->VAO);
+	glBindVertexArray(innerVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, vSize, v, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, iSize, i, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, innerEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, iiSize, ii, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	//outerVAO
+	glGenVertexArrays(1, &outerVAO);
+	//glGenBuffers(1, &VBO);
+	glGenBuffers(1, &outerEBO);
+
+	glBindVertexArray(outerVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, vSize, v, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, outerEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, oiSize, oi, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
@@ -100,14 +158,15 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &indice
 
 bool Body::init(GLint bodyResolution, Shader shaderInput)
 {
-	this->shader = shaderInput;
-	this->shader.createShaderProgram();
+	shader = shaderInput;
+	shader.createShaderProgram();
 
 	std::vector<GLfloat> vertices;
-	std::vector<GLuint> indices;
+	std::vector<GLuint> innerIndices;
+	std::vector<GLuint> outerIndices;
 
-	this->createStructure(bodyResolution, vertices, indices);
-	this->createVAO(vertices, indices);
+	createStructures(bodyResolution, vertices, innerIndices, outerIndices);
+	createVAO(vertices, innerIndices, outerIndices);
 	return true;
 }
 
@@ -119,22 +178,24 @@ void Body::draw(Camera* camera)
 	//3 Projection matrix
 	//View matrix = identity
 	b2Transform transform = this->phisicalBody->GetTransform();
-	
-	GLfloat model[16];
+	std::cout << transform.q.c << std::endl; //TODO DELETE
 
-	model[0] = transform.q.c;
-	model[1] = transform.q.s;
+	GLfloat model[16];
+	GLfloat r = this->phisicalBody->GetFixtureList()[0].GetShape()->m_radius;
+
+	model[0] = r * transform.q.c;
+	model[1] = r * transform.q.s;
 	model[2] = 0.0f;
 	model[3] = 0.0f;
 
-	model[4] = -transform.q.s;
-	model[5] = transform.q.c;
+	model[4] = -r * transform.q.s;
+	model[5] = r * transform.q.c;
 	model[6] = 0.0f;
 	model[7] = 0.0f;
 
 	model[8] = 0.0f;
 	model[9] = 0.0f;
-	model[10] = 1.0f;
+	model[10] = r;
 	model[11] = 0.0f;
 
 	model[12] = transform.p.x;
@@ -142,20 +203,25 @@ void Body::draw(Camera* camera)
 	model[14] = 0.0f;
 	model[15] = 1.0f;
 
+	GLfloat invColor[3] = { 1.0f - this->color[0], 1.0f - this->color[1], 1.0f - this->color[2] };
 	
 	glUseProgram(this->shader.shaderProgram);
 
-	GLfloat color[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	
-	glUniform4fv(1, 1, color);
+	glUniform3fv(1, 1, this->color);
 	glUniformMatrix4fv(2, 1, GL_FALSE, model);
 	glUniformMatrix4fv(3, 1, GL_FALSE, camera->projectionMatrix);
 
-	glBindVertexArray(this->VAO);
-	glDrawElements(GL_TRIANGLES, this->numberVertices, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(this->innerVAO);
+	glDrawElements(GL_TRIANGLE_FAN, this->numberInnerVertices, GL_UNSIGNED_INT, 0);
 
 
+	glUniform3fv(1, 1, invColor);
+	
+	glBindVertexArray(this->outerVAO);
+	glDrawElements(GL_TRIANGLES, this->numberOuterVertices, GL_UNSIGNED_INT, 0);
 
 	//clean up
 	glUseProgram(0);
 }
+ 

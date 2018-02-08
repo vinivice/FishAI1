@@ -41,6 +41,4 @@ private:
 	const char* fragmentShaderCode;
 	
 	GLuint createShader(const char* shaderCode, GLenum type);
-	
-
 };

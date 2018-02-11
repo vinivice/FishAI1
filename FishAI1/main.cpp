@@ -12,6 +12,9 @@
 
 
 bool pause = true;
+bool lForce = false;
+bool rForce = false;
+bool drawSensors = false;
 /******* CALLBACK FUNCTIONS *******/
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -60,8 +63,42 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		if (action == GLFW_PRESS)
 		{
 			pause = !pause;
+			if (pause)
+			{
+				glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+			}
+			else
+			{
+				glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			}
 		}
 		break;
+	case GLFW_KEY_N:
+		if (action == GLFW_PRESS)
+		{
+			lForce = !lForce;
+		}
+		break;
+	case GLFW_KEY_M:
+		if (action == GLFW_PRESS)
+		{
+			rForce = !rForce;
+		}
+		break;
+	case GLFW_KEY_J:
+		if (action == GLFW_PRESS)
+		{
+			rForce = !rForce;
+			lForce = !lForce;
+		}
+		break;
+	case GLFW_KEY_E:
+		if (action == GLFW_PRESS)
+		{
+			drawSensors = !drawSensors;
+		}
+		break;
+
 	}
 }
 /**********************************/
@@ -110,7 +147,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 	glViewport(0, 0, mainCamera.windowWidth, mainCamera.windowHeight);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 	/**********************************/
 
 	//Shader testShader((char *)"VS CODE\n", (char *)"FS CODE\n");
@@ -126,7 +163,8 @@ int main(int argc, char* argv[])
 
 
 	/******* BOX2D SETUP *******/
-	b2Vec2 gravity(0.0f, -10.0f);
+	//b2Vec2 gravity(0.0f, -10.0f);
+	b2Vec2 gravity(0.0f, 0.0f);
 	b2World world(gravity);
 	/*
 	b2BodyDef groundBodyDef;
@@ -178,7 +216,7 @@ int main(int argc, char* argv[])
 		std::cout << "x: " << position.x << "\ty: " << position.y << "\ttheta: " << angle << std::endl;
 	}*/
 	
-	Ring ring(&world, 25.0f, 4, ringShader);
+	Ring ring(&world, 25.0f, 32, ringShader);
 	GLint i;
 	clock_t currentTime, previousTime;
 	currentTime = previousTime = clock();
@@ -196,6 +234,18 @@ int main(int argc, char* argv[])
 
 		if (!pause)
 		{
+			for (i = 0; i < fishes.size(); i++)
+			{
+				if (lForce)
+				{
+					fishes[i]->useLeftPropulsor(false);
+				}
+				if (rForce)
+				{
+					fishes[i]->useRightPropulsor(false);
+				}
+			}
+			rForce = lForce = false;
 			timeInterval += 1.0 * (currentTime - previousTime) / CLOCKS_PER_SEC;
 			while (timeInterval >= period)
 			{
@@ -207,11 +257,13 @@ int main(int argc, char* argv[])
 		//std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
 		//for(int a = 0; a < 1000000; a++){}
 		//timeInterval = clock();
-		ring.draw(&mainCamera);
 		for (i = 0; i < fishes.size(); i++)
 		{
-			fishes[i]->draw(&mainCamera);//TODO CHANGE TO VECTOR
+			fishes[i]->draw(&mainCamera, drawSensors);
+			//fishes[i]->phisicalBody.S //TODO DELETE TEST
 		}
+		ring.draw(&mainCamera);
+
 		glfwSwapBuffers(window);
 
 		glBindVertexArray(0);

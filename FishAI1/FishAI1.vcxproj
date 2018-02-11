@@ -134,6 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="body.h" />
+    <ClInclude Include="definitions.h" />
     <ClInclude Include="graphics.h" />
     <ClInclude Include="sensor.h" />
     <ClInclude Include="mind.h" />

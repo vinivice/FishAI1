@@ -39,6 +39,8 @@ Ring::Ring(b2World* world, float32 radius, unsigned int resolution, Shader shade
 	myFixtureDef.density = 0.0f;
 	myFixtureDef.restitution = 0.4f;
 	myFixtureDef.friction = 0.2f;
+	myFixtureDef.filter.groupIndex = -1;
+	myFixtureDef.filter.categoryBits = RING_CATEGORY;
 
 	for (k = 0; k < resolution; k++)
 	{

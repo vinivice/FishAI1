@@ -1,15 +1,11 @@
 #pragma once
 #include "graphics.h"
+#include "definitions.h"
+
 #include <vector>
 #include <random>
 #include <ctime>
 #include <iostream> //TODO DELETE
-
-#define CHROMOSSOMES_SIZE 7
-#define STANDARD_RADIUS 0.30f
-#define STANDARD_POWER 1.0f
-#define LINEAR_DAMPING 0.25f
-#define ANGULAR_DAMPING 0.05f
 
 class Body 
 {
@@ -22,11 +18,14 @@ public:
 	void drawSensors(Camera* camera);
 	void useLeftPropulsor(bool reverse);
 	void useRightPropulsor(bool reverse);
-	//void BeginContact(b2Contact* contact);
+	void increaseNumberNearThings();
+	void decreaseNumberNearThings();
+
+
 	
-private:
-	static GLuint innerVAO, outerVAO, earVAO;
-	static GLuint numberOuterVertices, numberInnerVertices, numberEarVertices;
+protected:
+	static GLuint innerVAO, outerVAO, nearSensorVAO;
+	static GLuint numberOuterVertices, numberInnerVertices, numberNearSensorVertices;
 	static Shader shader;
 	static const GLfloat borderSize; //Interval (0, 1). Test Values
 	static GLint resolution;
@@ -42,8 +41,11 @@ private:
 	//Chromossomes translators
 	//color in float [0, 1]
 	GLfloat color[3];
-	GLfloat power, bodyRadius, earRadius;
+	GLfloat power, bodyRadius, nearSensorRadius;
 
-	static void createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &earIndices);
-	static void createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &earIndices);
+	//Sensors readings
+	GLuint numberNearThings;
+
+	static void createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices);
+	static void createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices);
 };

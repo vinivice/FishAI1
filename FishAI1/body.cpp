@@ -216,10 +216,9 @@ bool Body::init(GLint bodyResolution, Shader shaderInput)
 	return true;
 }
 
-void Body::draw(Camera* camera, bool drawSensors)
+void Body::drawBody(Camera* camera)
 {
 	b2Transform transform = this->phisicalBody->GetTransform();
-	//std::cout << transform.q.c << std::endl; //TODO DELETE
 
 	GLfloat model[16];
 	GLfloat r = this->phisicalBody->GetFixtureList()[0].GetShape()->m_radius;
@@ -245,24 +244,9 @@ void Body::draw(Camera* camera, bool drawSensors)
 	model[15] = 1.0f;
 
 	GLfloat invColor[3] = { 1.0f - this->color[0], 1.0f - this->color[1], 1.0f - this->color[2] };
-	
-	//Draw ear sensor
-	if (drawSensors)
-	{
-		//TODO change shader. Write another one
-		glUseProgram(this->shader.shaderProgram);
-		GLfloat sensorColor[3] = { 0.0f, 1.0f, 0.0f }; //TODO DELETE. magic color in shader
 
-		glUniform3fv(1, 1, sensorColor);
-		glUniformMatrix4fv(2, 1, GL_FALSE, model);
-		glUniformMatrix4fv(3, 1, GL_FALSE, camera->projectionMatrix);
-
-		glBindVertexArray(this->earVAO);
-		glDrawArrays(GL_TRIANGLE_FAN, 2 * resolution + 2, resolution + 2);
-	}
-	
 	//Draw body parts
-	
+
 	//0 Position
 	//1 Color
 	//2 Model matrix
@@ -280,10 +264,52 @@ void Body::draw(Camera* camera, bool drawSensors)
 
 	//Draw outer body
 	glUniform3fv(1, 1, invColor);
-	
+
 	glBindVertexArray(this->outerVAO);
 	glDrawElements(GL_TRIANGLES, this->numberOuterVertices, GL_UNSIGNED_INT, 0);
-	
+
+	//clean up
+	glUseProgram(0);
+}
+
+void Body::drawSensors(Camera* camera)
+{
+	b2Transform transform = this->phisicalBody->GetTransform();
+
+	GLfloat model[16];
+	GLfloat r = this->phisicalBody->GetFixtureList()[0].GetShape()->m_radius;
+
+	model[0] = r * transform.q.c;
+	model[1] = r * transform.q.s;
+	model[2] = 0.0f;
+	model[3] = 0.0f;
+
+	model[4] = -r * transform.q.s;
+	model[5] = r * transform.q.c;
+	model[6] = 0.0f;
+	model[7] = 0.0f;
+
+	model[8] = 0.0f;
+	model[9] = 0.0f;
+	model[10] = r;
+	model[11] = 0.0f;
+
+	model[12] = transform.p.x;
+	model[13] = transform.p.y;
+	model[14] = 0.0f;
+	model[15] = 1.0f;
+
+	//Draw ear sensor
+	glUseProgram(this->shader.shaderProgram);
+	GLfloat sensorColor[3] = { 0.0f, 1.0f, 0.0f }; //TODO DELETE. magic color in shader
+
+	glUniform3fv(1, 1, sensorColor);
+	glUniformMatrix4fv(2, 1, GL_FALSE, model);
+	glUniformMatrix4fv(3, 1, GL_FALSE, camera->projectionMatrix);
+
+	glBindVertexArray(this->earVAO);
+	glDrawArrays(GL_TRIANGLE_FAN, 2 * resolution + 2, resolution + 2);
+
 	//clean up
 	glUseProgram(0);
 }
@@ -304,6 +330,7 @@ void Body::useLeftPropulsor(bool reverse)
 		this->phisicalBody->ApplyForce(f, p + fPoint, true);
 	}
 }
+
 void Body::useRightPropulsor(bool reverse)
 {
 	GLfloat r = this->phisicalBody->GetFixtureList()[0].GetShape()->m_radius;
@@ -319,4 +346,10 @@ void Body::useRightPropulsor(bool reverse)
 	{
 		this->phisicalBody->ApplyForce(f, p + fPoint, true);
 	}
+}
+
+//Sensor functions
+void BeginContact(b2Contact* contact)
+{
+	std::cout << "HELLO\n";
 }

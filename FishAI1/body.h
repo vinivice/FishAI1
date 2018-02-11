@@ -18,7 +18,8 @@ public:
 
 	Body(b2World* world, float32 px, float32 py, float32 angle, std::default_random_engine& generator);
 	static bool init(GLint bodyResolution, Shader shaderInput);
-	void draw(Camera* camera, bool drawSensors);
+	void drawBody(Camera* camera);
+	void drawSensors(Camera* camera);
 	void useLeftPropulsor(bool reverse);
 	void useRightPropulsor(bool reverse);
 	

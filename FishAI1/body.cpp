@@ -8,6 +8,7 @@ GLuint Body::earVAO;
 Shader Body::shader;
 GLuint Body::numberInnerVertices;
 GLuint Body::numberOuterVertices;
+GLuint Body::numberEarVertices;
 GLint Body::resolution;
 
 Body::Body(b2World* world, float32 px, float32 py, float32 angle, std::default_random_engine& generator)
@@ -47,21 +48,33 @@ Body::Body(b2World* world, float32 px, float32 py, float32 angle, std::default_r
 	b2FixtureDef bodyFixtureDef;
 	bodyFixtureDef.shape = &bodyShape;
 
-	//Add body shape fixture
-	GLbyte rParameter = *(GLbyte*)(this->chromossomes + 1);
-	bodyShape.m_radius = STANDARD_RADIUS * (1 + rParameter / 255.0f);
-	bodyFixtureDef.density = 1.0f;
-	this->phisicalBody->CreateFixture(&bodyFixtureDef);
-
+	GLbyte brParameter = *(GLbyte*)(this->chromossomes + 1);
+	GLbyte erParameter = *(GLbyte*)(this->chromossomes + 6);
+	this->bodyRadius = STANDARD_RADIUS * (1 + brParameter / 255.0f);
+	this->earRadius = 2 * STANDARD_RADIUS * (1 + erParameter / 255.0f);
+	
 	//Add ear sensor fixure
-	bodyShape.m_radius = 2 * bodyShape.m_radius;
+	bodyShape.m_radius = this->earRadius; //TODO CHANGE TO THIS
 	bodyFixtureDef.density = 0.0f;
+	bodyFixtureDef.isSensor= true;
+	bodyFixtureDef.filter.groupIndex = -1;
 	this->phisicalBody->CreateFixture(&bodyFixtureDef);
 
+	//Add body shape fixture
+	bodyShape.m_radius = this->bodyRadius;
+	bodyFixtureDef.density = 1.0f;
+	bodyFixtureDef.isSensor = false;
+	bodyFixtureDef.filter.groupIndex = 0;
+	this->phisicalBody->CreateFixture(&bodyFixtureDef);
+
+	for (b2Fixture* f = this->phisicalBody->GetFixtureList(); f; f = f->GetNext())
+	{
+		std::cout << f->GetShape()->m_radius << std::endl;
+	}
 	//TODO Complete definition of body (add fixture etc)
 }
 
-void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices)
+void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &earIndices)
 {
 	GLfloat theta = 2 * b2_pi / bodyResolution;
 	GLfloat sinValue = std::sin(theta);
@@ -86,10 +99,13 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 		y = y2;
 	}
 
+	earIndices.push_back(2 * bodyResolution + 2);
 	innerIndices.push_back(2 * bodyResolution + 2);
-
+	
 	for (k = 0; k < 2*bodyResolution; k+=2)
 	{
+		//Ear triangle
+		earIndices.push_back(k);
 		//Inner triangle
 		innerIndices.push_back(k + 1);
 		//Outer triangle 1
@@ -102,6 +118,7 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 		outerIndices.push_back((k+3) % (2*bodyResolution));
 	}
 
+	earIndices.push_back(0);
 	innerIndices.push_back(1);
 
 	GLfloat eyeScaleConstant = 0.9;
@@ -118,7 +135,9 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 
 	numberInnerVertices = innerIndices.size();
 	numberOuterVertices = outerIndices.size();
-
+	numberEarVertices = earIndices.size();
+	
+	/*
 	//Ear sensor vectices 
 	x = 1.0f;
 	y = 0.0f;
@@ -135,13 +154,14 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 
 	vertices.push_back(2.0f);
 	vertices.push_back(0.0f);
+	*/
 }
 
-void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices)
+void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &earIndices)
 {
-	GLuint VBO, innerEBO, outerEBO;
+	GLuint VBO, innerEBO, outerEBO, earEBO;
 	GLfloat *v;
-	GLuint *ii, *oi, vSize, iiSize, oiSize;
+	GLuint *ii, *oi, *ei, vSize, iiSize, oiSize, eiSize;
 
 	v = vertices.data();
 	vSize = vertices.size() * sizeof(GLfloat);
@@ -151,6 +171,9 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerI
 
 	oi = outerIndices.data();
 	oiSize = outerIndices.size() * sizeof(GLuint);
+
+	ei = earIndices.data();
+	eiSize = earIndices.size() * sizeof(GLuint);
 
 	//innerVAO
 	glGenVertexArrays(1, &innerVAO);
@@ -175,9 +198,6 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerI
 
 	glBindVertexArray(outerVAO);
 
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	//glBufferData(GL_ARRAY_BUFFER, vSize, v, GL_STATIC_DRAW);
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, outerEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, oiSize, oi, GL_STATIC_DRAW);
 
@@ -187,9 +207,13 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerI
 	//earVAO
 	glGenVertexArrays(1, &earVAO);
 
+	glGenBuffers(1, &earEBO);
+
 	glBindVertexArray(earVAO);
 
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)(2 * resolution + 2));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, earEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, eiSize, ei, GL_STATIC_DRAW);
+
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
@@ -210,9 +234,10 @@ bool Body::init(GLint bodyResolution, Shader shaderInput)
 	std::vector<GLfloat> vertices;
 	std::vector<GLuint> innerIndices;
 	std::vector<GLuint> outerIndices;
+	std::vector<GLuint> earIndices;
 
-	createStructures(bodyResolution, vertices, innerIndices, outerIndices);
-	createVAO(vertices, innerIndices, outerIndices);
+	createStructures(bodyResolution, vertices, innerIndices, outerIndices, earIndices);
+	createVAO(vertices, innerIndices, outerIndices, earIndices);
 	return true;
 }
 
@@ -221,7 +246,7 @@ void Body::drawBody(Camera* camera)
 	b2Transform transform = this->phisicalBody->GetTransform();
 
 	GLfloat model[16];
-	GLfloat r = this->phisicalBody->GetFixtureList()[0].GetShape()->m_radius;
+	GLfloat r = this->bodyRadius;
 
 	model[0] = r * transform.q.c;
 	model[1] = r * transform.q.s;
@@ -277,7 +302,7 @@ void Body::drawSensors(Camera* camera)
 	b2Transform transform = this->phisicalBody->GetTransform();
 
 	GLfloat model[16];
-	GLfloat r = this->phisicalBody->GetFixtureList()[0].GetShape()->m_radius;
+	GLfloat r = this->earRadius;
 
 	model[0] = r * transform.q.c;
 	model[1] = r * transform.q.s;
@@ -308,7 +333,7 @@ void Body::drawSensors(Camera* camera)
 	glUniformMatrix4fv(3, 1, GL_FALSE, camera->projectionMatrix);
 
 	glBindVertexArray(this->earVAO);
-	glDrawArrays(GL_TRIANGLE_FAN, 2 * resolution + 2, resolution + 2);
+	glDrawElements(GL_TRIANGLE_FAN, this->numberEarVertices, GL_UNSIGNED_INT, 0);
 
 	//clean up
 	glUseProgram(0);
@@ -348,8 +373,3 @@ void Body::useRightPropulsor(bool reverse)
 	}
 }
 
-//Sensor functions
-void BeginContact(b2Contact* contact)
-{
-	std::cout << "HELLO\n";
-}

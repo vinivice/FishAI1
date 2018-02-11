@@ -130,10 +130,12 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mind.cpp" />
     <ClCompile Include="ring.cpp" />
+    <ClCompile Include="sensor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="body.h" />
     <ClInclude Include="graphics.h" />
+    <ClInclude Include="sensor.h" />
     <ClInclude Include="mind.h" />
     <ClInclude Include="ring.h" />
     <ClInclude Include="shader_codes.h" />

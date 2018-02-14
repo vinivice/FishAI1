@@ -10,16 +10,18 @@ GLuint Body::numberInnerVertices;
 GLuint Body::numberOuterVertices;
 GLuint Body::numberNearSensorVertices;
 GLint Body::resolution;
+std::default_random_engine* Body::generator;
+
 
 //TODO change most of constructor to a method to be used in other constructors
-Body::Body(b2World* world, float32 px, float32 py, float32 angle, std::default_random_engine& generator)
+Body::Body(b2World* world, float32 px, float32 py, float32 angle)
 {
 	this->numberNearThings = 0;
 	//Random body constructor
 	std::uniform_int_distribution<unsigned short> distribution(0, 255);
 	for (int i = 0; i < CHROMOSSOMES_SIZE; i++)
 	{
-		this->chromossomes[i] = (unsigned char)distribution(generator);
+		this->chromossomes[i] = (unsigned char)distribution(*(this->generator));
 		//std::cout << std::hex << +this->chromossomes[i] << std::endl;
 	}
 
@@ -224,8 +226,9 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerI
 }
 
 
-bool Body::init(GLint bodyResolution, Shader shaderInput)
+bool Body::init(GLint bodyResolution, Shader shaderInput, std::default_random_engine* gen)
 {
+	generator = gen;
 	shader = shaderInput;
 	shader.createShaderProgram();
 

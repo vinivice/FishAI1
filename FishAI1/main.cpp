@@ -203,10 +203,10 @@ int main(int argc, char* argv[])
 	//lala.push_back(b2Vec2(0.0f, 0.0f));
 	//Shader bodyShader(fishVS, fishFS);
 	Shader ringShader(ringVS, ringFS);
-	Body::init(32, Shader(fishVS, fishFS));
-	fishes.push_back(new Body(&world, -0.1f, 1.5f, 0.0f, generator));
-	fishes.push_back(new Body(&world, -1.2f, 0.0f, b2_pi / 2.0f, generator));
-	fishes.push_back(new Body(&world, -1.2f, -20.0f, b2_pi / 2.0f, generator));
+	Body::init(32, Shader(fishVS, fishFS), &generator);
+	fishes.push_back(new Body(&world, -0.1f, 1.5f, 0.0f));
+	fishes.push_back(new Body(&world, -1.2f, 0.0f, b2_pi / 2.0f));
+	fishes.push_back(new Body(&world, -1.2f, -20.0f, b2_pi / 2.0f));
 	//testBody.phisicalBody->SetTransform(b2Vec2(0.0f, 0.0f), 0.0f);
 	//fishes.back()->init(32, bodyShader);
 	//getchar();

@@ -12,8 +12,8 @@ class Body
 public:
 	b2Body * phisicalBody;
 
-	Body(b2World* world, float32 px, float32 py, float32 angle, std::default_random_engine& generator);
-	static bool init(GLint bodyResolution, Shader shaderInput);
+	Body(b2World* world, float32 px, float32 py, float32 angle);
+	static bool init(GLint bodyResolution, Shader shaderInput, std::default_random_engine* gen);
 	void drawBody(Camera* camera);
 	void drawSensors(Camera* camera);
 	void useLeftPropulsor(bool reverse);
@@ -29,6 +29,7 @@ protected:
 	static Shader shader;
 	static const GLfloat borderSize; //Interval (0, 1). Test Values
 	static GLint resolution;
+	static std::default_random_engine *generator;
 	
 	//size		offset		type		definition
 	//1			0			GLubyte		8 flags [x, x, x, x, x, x, x, x]

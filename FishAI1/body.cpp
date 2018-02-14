@@ -329,7 +329,7 @@ void Body::drawSensors(Camera* camera)
 
 	//Draw near sensor
 	glUseProgram(this->shader.shaderProgram);
-	GLfloat sensorColor[3] = { 0.0f, 1.0f, 0.0f }; //TODO DELETE. magic color in shader
+	GLfloat sensorColor[3] = { 0.0f, 1.0f, 0.0f };
 
 	glUniform3fv(1, 1, sensorColor);
 	glUniformMatrix4fv(2, 1, GL_FALSE, model);

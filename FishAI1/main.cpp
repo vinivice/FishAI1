@@ -10,6 +10,7 @@
 #include "shader_codes.h"
 #include "ring.h"
 #include "sensor.h"
+#include "seed.h"
 
 
 bool pause = true;
@@ -197,6 +198,7 @@ int main(int argc, char* argv[])
 	/***************************/
 
 	std::vector<Body *> fishes;
+	std::vector<Seed *> seeds;
 	
 	//TEST
 	//std::vector<b2Vec2> lala;
@@ -207,6 +209,10 @@ int main(int argc, char* argv[])
 	fishes.push_back(new Body(&world, -0.1f, 1.5f, 0.0f));
 	fishes.push_back(new Body(&world, -1.2f, 0.0f, b2_pi / 2.0f));
 	fishes.push_back(new Body(&world, -1.2f, -20.0f, b2_pi / 2.0f));
+
+	Seed::init(32, Shader(fishVS, fishFS), &generator);
+	seeds.push_back(new Seed(&world, NULL, SEX_SEED_CATEGORY, -1.0f, -10.0f, 0.0f, 0.0f));
+	seeds.push_back(new Seed(&world, NULL, ASEX_SEED_CATEGORY, 1.0f, -10.0f, 0.0f, 0.0f));
 	//testBody.phisicalBody->SetTransform(b2Vec2(0.0f, 0.0f), 0.0f);
 	//fishes.back()->init(32, bodyShader);
 	//getchar();
@@ -268,6 +274,10 @@ int main(int argc, char* argv[])
 			{
 				fishes[i]->drawSensors(&mainCamera);
 			}
+		}
+		for (i = 0; i < seeds.size(); i++)
+		{
+			seeds[i]->draw(&mainCamera);
 		}
 		for (i = 0; i < fishes.size(); i++)
 		{

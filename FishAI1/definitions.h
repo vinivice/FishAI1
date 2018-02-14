@@ -34,5 +34,5 @@ struct Commands
 #define ASEX_SEED_CATEGORY 0x0010
 
 //Seed definitions
-#define SEED_RADIUS 0.15f
+#define SEED_RADIUS 0.10f
 

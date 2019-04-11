@@ -46,3 +46,21 @@ extern const char* ringFS = \
 "}\n";
 
 //-------------------------------------------
+
+extern const char* eyeVS = \
+"#version 430\n"
+"layout(location = 0) in vec2 v_position;\n"
+"void main(void)\n"
+"{\n"
+"	gl_Position = vec4(v_position, 0.0f, 1.0f);\n"
+"}\n";
+
+extern const char* eyeFS = \
+"#version 430\n"
+"out vec4 color;\n"
+"void main(void)\n"
+"{\n"
+"	color = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
+"}\n";
+
+//-------------------------------------------

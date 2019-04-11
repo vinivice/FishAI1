@@ -205,14 +205,14 @@ int main(int argc, char* argv[])
 	//lala.push_back(b2Vec2(0.0f, 0.0f));
 	//Shader bodyShader(fishVS, fishFS);
 	Shader ringShader(ringVS, ringFS);
-	Body::init(32, Shader(fishVS, fishFS), &generator);
+	Body::init(BODY_RESOLUTION, Shader(fishVS, fishFS), Shader(eyeVS, eyeFS), &generator);
 	fishes.push_back(new Body(&world, -0.1f, 1.5f, 0.0f));
 	fishes.push_back(new Body(&world, -1.2f, 0.0f, b2_pi / 2.0f));
 	fishes.push_back(new Body(&world, -1.2f, -20.0f, b2_pi / 2.0f));
 
-	Seed::init(32, Shader(fishVS, fishFS), &generator);
+	Seed::init(SEED_RESOLUTION, Shader(fishVS, fishFS), &generator);
 	seeds.push_back(new Seed(&world, NULL, SEX_SEED_CATEGORY, -1.0f, -10.0f, 0.0f, 0.0f));
-	seeds.push_back(new Seed(&world, NULL, ASEX_SEED_CATEGORY, 1.0f, -10.0f, 0.0f, 0.0f));
+	seeds.push_back(new Seed(&world, NULL, ASEX_SEED_CATEGORY, 1.0f, -10.0f, 10.0f, 0.0f));
 	//testBody.phisicalBody->SetTransform(b2Vec2(0.0f, 0.0f), 0.0f);
 	//fishes.back()->init(32, bodyShader);
 	//getchar();
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 		std::cout << "x: " << position.x << "\ty: " << position.y << "\ttheta: " << angle << std::endl;
 	}*/
 	
-	Ring ring(&world, 25.0f, 32, ringShader);
+	Ring ring(&world, 25.0f, RING_RESOLUTION, ringShader);
 	GLint i;
 	clock_t currentTime, previousTime;
 	currentTime = previousTime = clock();
@@ -239,27 +239,30 @@ int main(int argc, char* argv[])
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
-		currentTime	 = clock();
+		currentTime	= clock();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		//turn this into methods
+		//values based on mind output
 		if (!pause)
 		{
-			for (i = 0; i < fishes.size(); i++)
-			{
-				if (lForce)
-				{
-					fishes[i]->useLeftPropulsor(false);
-				}
-				if (rForce)
-				{
-					fishes[i]->useRightPropulsor(false);
-				}
-			}
-			rForce = lForce = false;
-			timeInterval += 1.0 * (currentTime - previousTime) / CLOCKS_PER_SEC;
+			timeInterval += 1.0 * (currentTime - previousTime) / CLOCKS_PER_SEC; //1.0* just to cast to float. maybe future time scale?
 			while (timeInterval >= period)
 			{
+				for (i = 0; i < fishes.size(); i++)
+				{
+					fishes[i]->update();
+					if (lForce)
+					{
+						fishes[i]->useLeftPropulsor(false);
+					}
+					if (rForce)
+					{
+						fishes[i]->useRightPropulsor(false);
+					}
+				}
+				rForce = lForce = false;
 				world.Step(period, velocityIterations, positionIterations);
 				//std::cout << "Time: " << timeInterval << std::endl; //TEST
 				timeInterval -= period;
@@ -273,6 +276,10 @@ int main(int argc, char* argv[])
 			for (i = 0; i < fishes.size(); i++)
 			{
 				fishes[i]->drawSensors(&mainCamera);
+			}
+			for (i = 0; i < fishes.size(); i++)
+			{
+				fishes[i]->drawEyes(&mainCamera);
 			}
 		}
 		for (i = 0; i < seeds.size(); i++)

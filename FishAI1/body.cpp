@@ -1,11 +1,13 @@
 #include "body.h"
 #include <cmath>
 
-const GLfloat Body::borderSize = 0.2f;
+//const GLfloat Body::borderSize = 0.2f;
 GLuint Body::innerVAO;
 GLuint Body::outerVAO;
 GLuint Body::nearSensorVAO;
+GLuint Body::eyeVAO;
 Shader Body::shader;
+Shader Body::eyeShader;
 GLuint Body::numberInnerVertices;
 GLuint Body::numberOuterVertices;
 GLuint Body::numberNearSensorVertices;
@@ -54,9 +56,11 @@ Body::Body(b2World* world, float32 px, float32 py, float32 angle)
 
 	GLbyte brParameter = *(GLbyte*)(this->chromossomes + 1);
 	GLbyte erParameter = *(GLbyte*)(this->chromossomes + 6);
+	GLbyte eyeParameter = *(GLbyte*)(this->chromossomes + 7);
 	this->bodyRadius = STANDARD_RADIUS * (1 + brParameter / 255.0f);
 	this->nearSensorRadius = 2 * STANDARD_RADIUS * (1 + erParameter / 255.0f);
-	
+	this->eyeLenght = this->nearSensorRadius + 2 * STANDARD_RADIUS * (1 + eyeParameter / 255.0f);
+
 	//Add near sensor fixure
 	bodyShape.m_radius = this->nearSensorRadius; 
 	bodyFixtureDef.density = 0.0f;
@@ -76,7 +80,7 @@ Body::Body(b2World* world, float32 px, float32 py, float32 angle)
 	//TODO Complete definition of body (add fixture etc)
 }
 
-void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices)
+void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices, std::vector<GLuint> &eyeIndices)
 {
 	GLfloat theta = 2 * b2_pi / bodyResolution;
 	GLfloat sinValue = std::sin(theta);
@@ -84,7 +88,7 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 
 	GLfloat x = 1.0f, y = 0.0f, x2, y2;
 		
-	GLfloat innerRadius = 1.0f - borderSize;
+	GLfloat innerRadius = 1.0f - BORDER_SIZE;
 	
 	//Body vertices and indices 
 	int k;
@@ -101,6 +105,7 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 		y = y2;
 	}
 
+	//TODO check if necessary
 	nearSensorIndices.push_back(2 * bodyResolution + 2);
 	innerIndices.push_back(2 * bodyResolution + 2);
 	
@@ -123,8 +128,8 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 	nearSensorIndices.push_back(0);
 	innerIndices.push_back(1);
 
-	GLfloat eyeScaleConstant = 0.9;
-	vertices.push_back(eyeScaleConstant * innerRadius * sqrt(3.0f) / 2.0f);
+	GLfloat eyeScaleConstant = 0.9; //TODO transform definition
+	vertices.push_back(eyeScaleConstant * innerRadius * sqrt(3.0f) / 2.0f); //TODO precalc constant
 	vertices.push_back(eyeScaleConstant * innerRadius / 2.0f);
 	vertices.push_back(eyeScaleConstant * innerRadius * sqrt(3.0f) / 2.0f);
 	vertices.push_back(-eyeScaleConstant * innerRadius / 2.0f);
@@ -139,6 +144,9 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 	numberOuterVertices = outerIndices.size();
 	numberNearSensorVertices = nearSensorIndices.size();
 	
+	eyeIndices.push_back(2 * bodyResolution + 2);
+	eyeIndices.push_back(0);
+
 	/*
 	//Ear sensor vectices 
 	x = 1.0f;
@@ -159,11 +167,11 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 	*/
 }
 
-void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices)
+void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices, std::vector<GLuint> &eyeIndices)
 {
-	GLuint VBO, innerEBO, outerEBO, nearSensorEBO;
+	GLuint VBO, innerEBO, outerEBO, nearSensorEBO, eyeEBO;
 	GLfloat *v;
-	GLuint *ii, *oi, *ei, vSize, iiSize, oiSize, eiSize;
+	GLuint *ii, *oi, *ei, *eyei, vSize, iiSize, oiSize, eiSize;
 
 	v = vertices.data();
 	vSize = vertices.size() * sizeof(GLfloat);
@@ -176,6 +184,9 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerI
 
 	ei = nearSensorIndices.data();
 	eiSize = nearSensorIndices.size() * sizeof(GLuint);
+
+	eyei = eyeIndices.data();
+
 
 	//innerVAO
 	glGenVertexArrays(1, &innerVAO);
@@ -219,6 +230,20 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerI
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
+	//eyeVAO
+	glGenVertexArrays(1, &eyeVAO);
+
+	glGenBuffers(1, &eyeEBO);
+
+	glBindVertexArray(eyeVAO);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eyeEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * sizeof(GLuint), eyei, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+
 	//Clean up
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -226,11 +251,15 @@ void Body::createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerI
 }
 
 
-bool Body::init(GLint bodyResolution, Shader shaderInput, std::default_random_engine* gen)
+bool Body::init(GLint bodyResolution, Shader shaderInput, Shader eyeShaderInput, std::default_random_engine* gen)
 {
 	generator = gen;
 	shader = shaderInput;
 	shader.createShaderProgram();
+
+	eyeShader = eyeShaderInput;
+	eyeShader.createShaderProgram();
+
 
 	resolution = bodyResolution;
 
@@ -238,9 +267,10 @@ bool Body::init(GLint bodyResolution, Shader shaderInput, std::default_random_en
 	std::vector<GLuint> innerIndices;
 	std::vector<GLuint> outerIndices;
 	std::vector<GLuint> nearSensorIndices;
+	std::vector<GLuint> eyeIndices;
 
-	createStructures(bodyResolution, vertices, innerIndices, outerIndices, nearSensorIndices);
-	createVAO(vertices, innerIndices, outerIndices, nearSensorIndices);
+	createStructures(bodyResolution, vertices, innerIndices, outerIndices, nearSensorIndices, eyeIndices);
+	createVAO(vertices, innerIndices, outerIndices, nearSensorIndices, eyeIndices);
 	return true;
 }
 
@@ -342,6 +372,67 @@ void Body::drawSensors(Camera* camera)
 	glUseProgram(0);
 }
 
+void Body::drawEyes(Camera* camera)
+{
+	b2Transform transform = this->phisicalBody->GetTransform();
+
+	GLfloat model[16];
+	GLfloat r = this->eyeLenght;
+
+	model[2] = 0.0f;
+	model[3] = 0.0f;
+
+	model[6] = 0.0f;
+	model[7] = 0.0f;
+
+	model[8] = 0.0f;
+	model[9] = 0.0f;
+	model[11] = 0.0f;
+
+	model[12] = transform.p.x;
+	model[13] = transform.p.y;
+	model[14] = 0.0f;
+	model[15] = 1.0f;
+
+	GLfloat sin[5] = {
+		SUM_SIN(transform.q.s, transform.q.c, -SIN_30, COS_30),
+		SUM_SIN(transform.q.s, transform.q.c, -SIN_15, COS_15),
+		transform.q.s,
+		SUM_SIN(transform.q.s, transform.q.c, SIN_15, COS_15),
+		SUM_SIN(transform.q.s, transform.q.c, SIN_30, COS_30),
+	};
+	GLfloat cos[5] = {
+		SUM_COS(transform.q.s, transform.q.c, -SIN_30, COS_30),
+		SUM_COS(transform.q.s, transform.q.c, -SIN_15, COS_15),
+		transform.q.c,
+		SUM_COS(transform.q.s, transform.q.c, SIN_15, COS_15),
+		SUM_COS(transform.q.s, transform.q.c, SIN_30, COS_30),
+	};
+
+
+	//Draw eye
+	glUseProgram(this->shader.shaderProgram);
+	GLfloat sensorColor[3] = { 1.0f, 1.0f, 1.0f };
+
+	glUniform3fv(1, 1, sensorColor);
+	glUniformMatrix4fv(3, 1, GL_FALSE, camera->projectionMatrix);
+
+	glBindVertexArray(this->eyeVAO); 
+	
+	for (int iii = 0; iii < 5; iii++)
+	{
+		model[0] = model[5] = r * cos[iii] * this->eyeFraction[iii];
+		model[1] = r * sin[iii] * this->eyeFraction[iii];
+		model[4] = -r * sin[iii] * this->eyeFraction[iii];
+		model[10] = r * this->eyeFraction[iii];
+		glUniformMatrix4fv(2, 1, GL_FALSE, model);
+		glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, 0);
+	}
+	
+	//clean up
+	glUseProgram(0);
+}
+
 void Body::useLeftPropulsor(bool reverse)
 {
 	GLfloat r = this->phisicalBody->GetFixtureList()[0].GetShape()->m_radius;
@@ -390,3 +481,12 @@ void Body::decreaseNumberNearThings()
 	}
 }
 
+void Body::update()
+{
+	this->eyeFraction[0] = 0.2f;
+	this->eyeFraction[1] = 0.4f;
+	this->eyeFraction[2] = 0.6f;
+	this->eyeFraction[3] = 0.8f;
+	this->eyeFraction[4] = 1.0f;
+	return;
+}

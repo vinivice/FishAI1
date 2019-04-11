@@ -50,9 +50,9 @@ Seed::Seed(b2World* world, GLubyte* chromossomeInput, GLushort category, GLfloat
 		seedFixtureDef.filter.categoryBits = ASEX_SEED_CATEGORY;
 		seedFixtureDef.filter.maskBits = RING_CATEGORY;
 
-		this->color[0] = 0.0f;
+		this->color[0] = 1.0f;
 		this->color[1] = 1.0f;
-		this->color[2] = 1.0f;
+		this->color[2] = 0.0f;
 
 
 		//std::cout << "ASEX\n";
@@ -128,7 +128,7 @@ void Seed::draw(Camera *camera)
 	GLfloat model[16];
 	GLfloat r = SEED_RADIUS;
 
-	std::cout << r << ", " << transform.q.c << ", " << transform.p.x << ", " << transform.p.y << "\n";
+	//std::cout << r << ", " << transform.q.c << ", " << transform.p.x << ", " << transform.p.y << "\n";
 
 	model[0] = r * transform.q.c;
 	model[1] = r * transform.q.s;
@@ -153,7 +153,22 @@ void Seed::draw(Camera *camera)
 	//Draw seed
 	glUseProgram(this->shader.shaderProgram);
 
-	glUniform3fv(1, 1, this->color);
+	if (this->phisicalBody->IsAwake() == false)
+	{
+		//std::cout << "FALSE\n";
+		GLfloat color[3] = { 1.0, 0.0, 0.0 };
+		glUniform3fv(1, 1, color);
+	}
+	else
+	{
+		//std::cout << "TRUE\n";
+		glUniform3fv(1, 1, this->color);
+	}
+	/*if (this->phisicalBody->GetFixtureList()[0].GetFilterData().categoryBits == ASEX_SEED_CATEGORY)
+	{
+		std::cout << this->phisicalBody->GetLinearVelocity().Length() << std::endl;
+	}*/
+
 	glUniformMatrix4fv(2, 1, GL_FALSE, model);
 	glUniformMatrix4fv(3, 1, GL_FALSE, camera->projectionMatrix);
 

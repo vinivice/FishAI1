@@ -1,7 +1,13 @@
 #pragma once
 #include<iostream>
-#include<GL\glew.h>
-#include<Box2D\Box2D.h>
+
+#if OS == linux
+    #include<GL/glew.h>
+    #include<Box2D/Box2D.h>
+#else
+    #include<GL\glew.h>
+    #include<Box2D\Box2D.h>
+#endif
 
 class Camera
 {

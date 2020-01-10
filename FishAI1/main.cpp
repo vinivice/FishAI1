@@ -1,7 +1,18 @@
 #include<iostream>
-#include<GL\glew.h>
-#include<GLFW\glfw3.h>
-#include<Box2D\Box2D.h>
+
+#if OS == linux
+    #include<GL/glew.h>
+    #include<GLFW/glfw3.h>
+    #include<Box2D/Box2D.h>
+#else
+    #include<GL\glew.h>
+    #include<GLFW\glfw3.h>
+    #include<Box2D\Box2D.h>
+#endif
+
+
+
+
 #include<vector>
 #include<ctime>
 
@@ -87,6 +98,9 @@ int main(int argc, char* argv[])
 		glfwTerminate();
 		return EXIT_FAILURE;
 	}
+    #ifdef DEBUG
+        std::cout << "WINDOW OK\n";
+    #endif
 
 	glfwMakeContextCurrent(window);
 
@@ -99,6 +113,12 @@ int main(int argc, char* argv[])
 		std::cout << "GLEW FAIL\n";
 		return EXIT_FAILURE;
 	}
+
+    #ifdef DEBUG
+        std::cout << "GLEW OK\n";
+    #endif
+
+
 	glViewport(0, 0, mainCamera.windowWidth, mainCamera.windowHeight);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	/**********************************/
@@ -143,6 +163,12 @@ int main(int argc, char* argv[])
 	int32 velocityIterations = 6;
 	int32 positionIterations = 2;
 
+    #ifdef DEBUG
+        std::cout << "BOX2D SETUP OK\n";
+    #endif
+
+
+
 	/***************************/
 
 	//TEST
@@ -154,6 +180,11 @@ int main(int argc, char* argv[])
 	testBody.init(16, bodyShader);
 	getchar();
 	//glDrawArrays(GL_LINE)
+
+    #ifdef DEBUG
+        std::cout << "TEST OK\n";
+    #endif
+
 
 	/******* MAIN LOOP *******/
 	for (int32 i = 0; i < 100; i++)
@@ -168,8 +199,20 @@ int main(int argc, char* argv[])
 	currentTime = previousTime = clock();
 	GLfloat timeInterval = 0.0f;
 	GLfloat period = 1000.0f / fps;
+
+    #ifdef DEBUG
+        std::cout << "PRE LOOP OK\n";
+    #endif
+
+
 	while (!glfwWindowShouldClose(window))
 	{
+
+        #ifdef DEBUG
+            std::cout << "LOOP RUNNNING\n";
+        #endif
+
+
 		glfwPollEvents();
 		currentTime	 = clock();
 

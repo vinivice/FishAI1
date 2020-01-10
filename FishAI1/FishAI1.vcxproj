@@ -129,11 +129,18 @@
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mind.cpp" />
+    <ClCompile Include="ring.cpp" />
+    <ClCompile Include="seed.cpp" />
+    <ClCompile Include="sensor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="body.h" />
+    <ClInclude Include="definitions.h" />
     <ClInclude Include="graphics.h" />
+    <ClInclude Include="seed.h" />
+    <ClInclude Include="sensor.h" />
     <ClInclude Include="mind.h" />
+    <ClInclude Include="ring.h" />
     <ClInclude Include="shader_codes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

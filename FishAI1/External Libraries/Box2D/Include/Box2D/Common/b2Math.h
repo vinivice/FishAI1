@@ -335,7 +335,7 @@ struct b2Rot
 		return b2Vec2(c, s);
 	}
 
-	/// Get the u-axis
+	/// Get the u-axis	
 	b2Vec2 GetYAxis() const
 	{
 		return b2Vec2(-s, c);

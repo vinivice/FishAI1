@@ -10,17 +10,21 @@
     #include<Box2D\Box2D.h>
 #endif
 
-
-
-
 #include<vector>
 #include<ctime>
 
 #include"graphics.h"
 #include"body.h"
 #include"shader_codes.h"
+#include "ring.h"
+#include "sensor.h"
+#include "seed.h"
 
 
+bool pause = true;
+bool lForce = false;
+bool rForce = false;
+bool drawSensors = false;
 /******* CALLBACK FUNCTIONS *******/
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -30,13 +34,13 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		glfwSetWindowShouldClose(window, GL_TRUE);
 		break;
 	case GLFW_KEY_I:
-		if(action == GLFW_PRESS)
+		if (action != GLFW_RELEASE)
 		{
 			mainCamera.zoomIn();
 		}
 		break;
 	case GLFW_KEY_O:
-		if (action == GLFW_PRESS)
+		if (action != GLFW_RELEASE)
 		{
 			mainCamera.zoomOut();
 		}
@@ -65,13 +69,55 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			mainCamera.move(1.0f, 0.0f);
 		}
 		break;
+	case GLFW_KEY_P:
+		if (action == GLFW_PRESS)
+		{
+			pause = !pause;
+			if (pause)
+			{
+				glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+			}
+			else
+			{
+				glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			}
+		}
+		break;
+	case GLFW_KEY_N:
+		if (action == GLFW_PRESS)
+		{
+			lForce = !lForce;
+		}
+		break;
+	case GLFW_KEY_M:
+		if (action == GLFW_PRESS)
+		{
+			rForce = !rForce;
+		}
+		break;
+	case GLFW_KEY_J:
+		if (action == GLFW_PRESS)
+		{
+			rForce = !rForce;
+			lForce = !lForce;
+		}
+		break;
+	case GLFW_KEY_E:
+		if (action == GLFW_PRESS)
+		{
+			drawSensors = !drawSensors;
+		}
+		break;
+
 	}
 }
 /**********************************/
 
 int main(int argc, char* argv[])
 {
-	GLuint fps = 60;
+	GLuint fps = 120;
+	std::default_random_engine generator(time(0));
+
 	//TODO DELETE
 	std::cout << "Hello World!\n";
 
@@ -120,7 +166,7 @@ int main(int argc, char* argv[])
 
 
 	glViewport(0, 0, mainCamera.windowWidth, mainCamera.windowHeight);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 	/**********************************/
 
 	//Shader testShader((char *)"VS CODE\n", (char *)"FS CODE\n");
@@ -136,9 +182,13 @@ int main(int argc, char* argv[])
 
 
 	/******* BOX2D SETUP *******/
-	b2Vec2 gravity(0.0f, -10.0f);
+	//b2Vec2 gravity(0.0f, -10.0f);
+	b2Vec2 gravity(0.0f, 0.0f);
 	b2World world(gravity);
 
+	MyContactListener* contactListener = new MyContactListener();
+	world.SetContactListener(contactListener);
+	/*
 	b2BodyDef groundBodyDef;
 	groundBodyDef.position.Set(0.0f, -10.0f);
 
@@ -146,8 +196,8 @@ int main(int argc, char* argv[])
 	
 	b2PolygonShape groundBox;
 	groundBox.SetAsBox(50.0f, 10.0f);
-	groundBody->CreateFixture(&groundBox, 0.0f);
-
+	groundBody->CreateFixture(&groundBox, 0.0f);*/
+	/*
 	b2BodyDef bodyDef;
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.position.Set(0.0f, 4.0f);
@@ -159,9 +209,6 @@ int main(int argc, char* argv[])
 	fixtureDef.density = 1.0f;
 	fixtureDef.friction = 0.3f;
 	body->CreateFixture(&fixtureDef);
-	float32 timeStep = 1.0f / 60.0f;
-	int32 velocityIterations = 6;
-	int32 positionIterations = 2;
 
     #ifdef DEBUG
         std::cout << "BOX2D SETUP OK\n";
@@ -169,16 +216,29 @@ int main(int argc, char* argv[])
 
 
 
+	float32 timeStep = 1.0f / 60.0f;
+	*/
 	/***************************/
 
+	std::vector<Body *> fishes;
+	std::vector<Seed *> seeds;
+	
 	//TEST
-	std::vector<b2Vec2> lala;
-	lala.push_back(b2Vec2(0.0f, 0.0f));
-	Body testBody(&world);
-	Shader bodyShader(fishVS, fishFS);
+	//std::vector<b2Vec2> lala;
+	//lala.push_back(b2Vec2(0.0f, 0.0f));
+	//Shader bodyShader(fishVS, fishFS);
+	Shader ringShader(ringVS, ringFS);
+	Body::init(BODY_RESOLUTION, Shader(fishVS, fishFS), Shader(eyeVS, eyeFS), &generator);
+	fishes.push_back(new Body(&world, -0.1f, 1.5f, 0.0f));
+	fishes.push_back(new Body(&world, -1.2f, 0.0f, b2_pi / 2.0f));
+	fishes.push_back(new Body(&world, -1.2f, -20.0f, b2_pi / 2.0f));
+
+	Seed::init(SEED_RESOLUTION, Shader(fishVS, fishFS), &generator);
+	seeds.push_back(new Seed(&world, NULL, SEX_SEED_CATEGORY, -1.0f, -10.0f, 0.0f, 0.0f));
+	seeds.push_back(new Seed(&world, NULL, ASEX_SEED_CATEGORY, 1.0f, -10.0f, 10.0f, 0.0f));
 	//testBody.phisicalBody->SetTransform(b2Vec2(0.0f, 0.0f), 0.0f);
-	testBody.init(16, bodyShader);
-	getchar();
+	//fishes.back()->init(32, bodyShader);
+	//getchar();
 	//glDrawArrays(GL_LINE)
 
     #ifdef DEBUG
@@ -187,23 +247,27 @@ int main(int argc, char* argv[])
 
 
 	/******* MAIN LOOP *******/
-	for (int32 i = 0; i < 100; i++)
+	/*for (int32 i = 0; i < 100; i++)
 	{
 		world.Step(timeStep, velocityIterations, positionIterations);
 		b2Vec2 position = body->GetPosition();
 		float32 angle = body->GetAngle();
 		std::cout << "x: " << position.x << "\ty: " << position.y << "\ttheta: " << angle << std::endl;
-	}
+	}*/
 	
+	Ring ring(&world, 25.0f, RING_RESOLUTION, ringShader);
+	GLint i;
 	clock_t currentTime, previousTime;
 	currentTime = previousTime = clock();
 	GLfloat timeInterval = 0.0f;
-	GLfloat period = 1000.0f / fps;
 
     #ifdef DEBUG
         std::cout << "PRE LOOP OK\n";
     #endif
 
+	GLfloat period = 1.0f / fps;
+	int32 velocityIterations = 6;
+	int32 positionIterations = 2;
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -214,21 +278,60 @@ int main(int argc, char* argv[])
 
 
 		glfwPollEvents();
-		currentTime	 = clock();
+		currentTime	= clock();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		timeInterval += 1000.0 * (currentTime - previousTime) / CLOCKS_PER_SEC;
-		while (timeInterval >= period) 
+		//turn this into methods
+		//values based on mind output
+		if (!pause)
 		{
-			std::cout << "Time: " << timeInterval << std::endl; //TEST
-			timeInterval -= period;
-			testBody.draw(&mainCamera);//TODO CHANGE TO VECTOR
-			glfwSwapBuffers(window);
+			timeInterval += 1.0 * (currentTime - previousTime) / CLOCKS_PER_SEC; //1.0* just to cast to float. maybe future time scale?
+			while (timeInterval >= period)
+			{
+				for (i = 0; i < fishes.size(); i++)
+				{
+					fishes[i]->update();
+					if (lForce)
+					{
+						fishes[i]->useLeftPropulsor(false);
+					}
+					if (rForce)
+					{
+						fishes[i]->useRightPropulsor(false);
+					}
+				}
+				rForce = lForce = false;
+				world.Step(period, velocityIterations, positionIterations);
+				//std::cout << "Time: " << timeInterval << std::endl; //TEST
+				timeInterval -= period;
+			}
 		}
 		//std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
 		//for(int a = 0; a < 1000000; a++){}
 		//timeInterval = clock();
+		if(drawSensors)
+		{
+			for (i = 0; i < fishes.size(); i++)
+			{
+				fishes[i]->drawSensors(&mainCamera);
+			}
+			for (i = 0; i < fishes.size(); i++)
+			{
+				fishes[i]->drawEyes(&mainCamera);
+			}
+		}
+		for (i = 0; i < seeds.size(); i++)
+		{
+			seeds[i]->draw(&mainCamera);
+		}
+		for (i = 0; i < fishes.size(); i++)
+		{
+			fishes[i]->drawBody(&mainCamera);
+		}
+		ring.draw(&mainCamera);
+
+		glfwSwapBuffers(window);
 
 		glBindVertexArray(0);
 		//glfwSwapBuffers(window);

@@ -1,6 +1,10 @@
 #pragma once
 #include <iostream>
-#include <Box2D\Box2D.h>
+#if OS == linux
+    #include<Box2D/Box2D.h>
+#else
+    #include<Box2D\Box2D.h>
+#endif
 
 #include "body.h"
 #include "definitions.h"

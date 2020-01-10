@@ -22,7 +22,7 @@ public:
 	void useRightPropulsor(bool reverse);
 	void increaseNumberNearThings();
 	void decreaseNumberNearThings();
-	void update();
+	void update(b2World *world);
 
 
 	
@@ -52,6 +52,10 @@ protected:
 	//Sensors readings
 	GLuint numberNearThings;
 	GLfloat eyeFraction[5];
+
+    //Eyes directions
+    GLfloat sin[5];
+    GLfloat cos[5];
 
 	static void createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices, std::vector<GLuint> &eyeIndices);
 	static void createVAO(std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices, std::vector<GLuint> &eyeIndices);

@@ -128,12 +128,13 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 	nearSensorIndices.push_back(0);
 	innerIndices.push_back(1);
 
+    //Triangle representing the eye, not the eye sensor
 	GLfloat eyeScaleConstant = 0.9; //TODO transform definition
 	vertices.push_back(eyeScaleConstant * innerRadius * sqrt(3.0f) / 2.0f); //TODO precalc constant
 	vertices.push_back(eyeScaleConstant * innerRadius / 2.0f);
 	vertices.push_back(eyeScaleConstant * innerRadius * sqrt(3.0f) / 2.0f);
 	vertices.push_back(-eyeScaleConstant * innerRadius / 2.0f);
-	vertices.push_back(0.0f);
+	vertices.push_back(0.0f); // 2*bodyRes + 2
 	vertices.push_back(0.0f);
 
 	outerIndices.push_back(2 * bodyResolution);
@@ -144,6 +145,7 @@ void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices
 	numberOuterVertices = outerIndices.size();
 	numberNearSensorVertices = nearSensorIndices.size();
 	
+    //Eye sensor. Line from (0,0) to (1,0)
 	eyeIndices.push_back(2 * bodyResolution + 2);
 	eyeIndices.push_back(0);
 
@@ -394,21 +396,7 @@ void Body::drawEyes(Camera* camera)
 	model[14] = 0.0f;
 	model[15] = 1.0f;
 
-	GLfloat sin[5] = {
-		SUM_SIN(transform.q.s, transform.q.c, -SIN_30, COS_30),
-		SUM_SIN(transform.q.s, transform.q.c, -SIN_15, COS_15),
-		transform.q.s,
-		SUM_SIN(transform.q.s, transform.q.c, SIN_15, COS_15),
-		SUM_SIN(transform.q.s, transform.q.c, SIN_30, COS_30),
-	};
-	GLfloat cos[5] = {
-		SUM_COS(transform.q.s, transform.q.c, -SIN_30, COS_30),
-		SUM_COS(transform.q.s, transform.q.c, -SIN_15, COS_15),
-		transform.q.c,
-		SUM_COS(transform.q.s, transform.q.c, SIN_15, COS_15),
-		SUM_COS(transform.q.s, transform.q.c, SIN_30, COS_30),
-	};
-
+	
 
 	//Draw eye
 	glUseProgram(this->shader.shaderProgram);
@@ -421,9 +409,9 @@ void Body::drawEyes(Camera* camera)
 	
 	for (int iii = 0; iii < 5; iii++)
 	{
-		model[0] = model[5] = r * cos[iii] * this->eyeFraction[iii];
-		model[1] = r * sin[iii] * this->eyeFraction[iii];
-		model[4] = -r * sin[iii] * this->eyeFraction[iii];
+		model[0] = model[5] = r * this->cos[iii] * this->eyeFraction[iii];
+		model[1] = r * this->sin[iii] * this->eyeFraction[iii];
+		model[4] = -r * this->sin[iii] * this->eyeFraction[iii];
 		model[10] = r * this->eyeFraction[iii];
 		glUniformMatrix4fv(2, 1, GL_FALSE, model);
 		glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, 0);
@@ -481,12 +469,67 @@ void Body::decreaseNumberNearThings()
 	}
 }
 
-void Body::update()
+void Body::update(b2World *world)
 {
-	this->eyeFraction[0] = 0.2f;
+	b2Transform transform = this->phisicalBody->GetTransform();
+    //Raytrace the eyes
+    this->sin[0] = SUM_SIN(transform.q.s, transform.q.c, -SIN_30, COS_30);
+    this->sin[1] = SUM_SIN(transform.q.s, transform.q.c, -SIN_15, COS_15);
+    this->sin[2] = transform.q.s;
+    this->sin[3] = SUM_SIN(transform.q.s, transform.q.c, SIN_15, COS_15);
+    this->sin[4] = SUM_SIN(transform.q.s, transform.q.c, SIN_30, COS_30);
+
+	this->cos[0] = SUM_COS(transform.q.s, transform.q.c, -SIN_30, COS_30);
+	this->cos[1] = SUM_COS(transform.q.s, transform.q.c, -SIN_15, COS_15);
+	this->cos[2] = transform.q.c;
+	this->cos[3] = SUM_COS(transform.q.s, transform.q.c, SIN_15, COS_15);
+	this->cos[4] = SUM_COS(transform.q.s, transform.q.c, SIN_30, COS_30);
+
+    
+    b2RayCastInput input;
+    input.p1 = transform.p;
+    input.maxFraction = 1;
+
+    b2RayCastOutput output;
+
+
+    for(int iii = 0; iii < 5; iii++)
+    {
+        input.p2 = transform.p + this->eyeLenght * b2Vec2(this->cos[iii], this->sin[iii]);
+        //std::cout << input.p1.x << " , " << input.p1.y << ")(" << input.p2.x << " , " << input.p2.y << ")\n";
+        float closestFraction = 1;
+        for(b2Body *b=world->GetBodyList(); b; b = b->GetNext())
+        {
+            if(b->GetUserData() != this)
+            {
+                for(b2Fixture *f=b->GetFixtureList(); f; f = f->GetNext())
+                {
+                    if(f->IsSensor())
+                    {
+                        continue;
+                    }
+                    if(!(f->RayCast(&output, input, 0)))
+                    {
+                        continue;
+                    }
+                    if(output.fraction < closestFraction)
+                    {
+                        closestFraction = output.fraction;
+                    }
+                }
+            }
+        }
+        this->eyeFraction[iii] = closestFraction;
+    }
+
+
+
+
+	/*this->eyeFraction[0] = 0.2f;
 	this->eyeFraction[1] = 0.4f;
 	this->eyeFraction[2] = 0.6f;
 	this->eyeFraction[3] = 0.8f;
 	this->eyeFraction[4] = 1.0f;
-	return;
+	*/
+    //return;
 }

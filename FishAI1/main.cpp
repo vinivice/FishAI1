@@ -31,6 +31,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 	switch (key)
 	{
 	case GLFW_KEY_ESCAPE:
+	case GLFW_KEY_Q:
 		glfwSetWindowShouldClose(window, GL_TRUE);
 		break;
 	case GLFW_KEY_I:
@@ -144,7 +145,7 @@ int main(int argc, char* argv[])
 		glfwTerminate();
 		return EXIT_FAILURE;
 	}
-    #ifdef DEBUG
+    #if DEBUG==1
         std::cout << "WINDOW OK\n";
     #endif
 
@@ -160,7 +161,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-    #ifdef DEBUG
+    #if DEBUG==1
         std::cout << "GLEW OK\n";
     #endif
 
@@ -210,7 +211,7 @@ int main(int argc, char* argv[])
 	fixtureDef.friction = 0.3f;
 	body->CreateFixture(&fixtureDef);
 
-    #ifdef DEBUG
+    #if DEBUG==1
         std::cout << "BOX2D SETUP OK\n";
     #endif
 
@@ -241,7 +242,7 @@ int main(int argc, char* argv[])
 	//getchar();
 	//glDrawArrays(GL_LINE)
 
-    #ifdef DEBUG
+    #if DEBUG==1
         std::cout << "TEST OK\n";
     #endif
 
@@ -260,8 +261,11 @@ int main(int argc, char* argv[])
 	clock_t currentTime, previousTime;
 	currentTime = previousTime = clock();
 	GLfloat timeInterval = 0.0f;
+	//GLfloat loopTime = 0.0f;
 
-    #ifdef DEBUG
+    bool swapBuffer = true;
+
+    #if DEBUG==1
         std::cout << "PRE LOOP OK\n";
     #endif
 
@@ -272,7 +276,7 @@ int main(int argc, char* argv[])
 	while (!glfwWindowShouldClose(window))
 	{
 
-        #ifdef DEBUG
+        #if DEBUG==1
             std::cout << "LOOP RUNNNING\n";
         #endif
 
@@ -284,14 +288,18 @@ int main(int argc, char* argv[])
 
 		//turn this into methods
 		//values based on mind output
+            
 		if (!pause)
 		{
-			timeInterval += 1.0 * (currentTime - previousTime) / CLOCKS_PER_SEC; //1.0* just to cast to float. maybe future time scale?
+            timeInterval += 1.0 * (currentTime - previousTime) / CLOCKS_PER_SEC; //1.0* just to cast to float. maybe future time scale?
 			while (timeInterval >= period)
 			{
+                #if SHOW_FPS==1
+                    std::cout << (int) (1.0 / timeInterval) << "fps\n";
+                #endif
 				for (i = 0; i < fishes.size(); i++)
 				{
-					fishes[i]->update();
+					fishes[i]->update(&world);
 					if (lForce)
 					{
 						fishes[i]->useLeftPropulsor(false);
@@ -305,6 +313,7 @@ int main(int argc, char* argv[])
 				world.Step(period, velocityIterations, positionIterations);
 				//std::cout << "Time: " << timeInterval << std::endl; //TEST
 				timeInterval -= period;
+                swapBuffer = true;
 			}
 		}
 		//std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
@@ -331,7 +340,11 @@ int main(int argc, char* argv[])
 		}
 		ring.draw(&mainCamera);
 
-		glfwSwapBuffers(window);
+        if(swapBuffer || pause)
+        {
+            glfwSwapBuffers(window);
+            swapBuffer = false;
+        }
 
 		glBindVertexArray(0);
 		//glfwSwapBuffers(window);

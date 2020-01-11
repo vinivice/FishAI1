@@ -321,7 +321,7 @@ int main(int argc, char* argv[])
 				}
                 for (i = 0; i < seeds.size(); i++)
                 {
-                    if(seeds[i]->update(period_s))
+                    if(seeds[i]->update(period_s, &fishes))
                     {
                         delete seeds[i];
                         seeds.erase(seeds.begin()+i);

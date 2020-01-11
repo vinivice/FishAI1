@@ -33,6 +33,7 @@ Seed::Seed(b2World* world, GLubyte* chromossomeInput, GLushort category, GLfloat
 	seedFixtureDef.density = 0.5f;
 
 
+    this->category = category;
 
 	if (category == SEX_SEED_CATEGORY)
 	{
@@ -186,13 +187,28 @@ void Seed::draw(Camera *camera)
 	glUseProgram(0);
 }
 
-bool Seed::update(GLfloat timeInterval)
+bool Seed::update(GLfloat timeInterval, std::vector<Body *> *fishes)
 {
-	b2Transform transform = this->phisicalBody->GetTransform();
     this->ttl -= timeInterval;
- //   std::cout << ttl << " ttl - " << timeInterval << " s- PERIODO\n";
- //   std::cout << transform.p.x << " , " << transform.p.y << "\n";
+    bool ttlZero = ttl <= 0;
+    if(ttlZero)
+    {
+        if(this->category == SEX_SEED_CATEGORY)
+        {
+            //JUST DIE? PROBABLY
+            //BECOME FOOD? MAYBE
+            std::cout << "S DEAD\n";
+        }
+        else
+        {
+        	b2Transform transform = this->phisicalBody->GetTransform();
+            //CREATE NEW FISH
+            //TODO change random fish for specific fish
+            fishes->push_back(new Body(this->phisicalBody->GetWorld(), transform.p.x, transform.p.y, transform.q.GetAngle()));
+            std::cout << "AS DEAD\n";
+        }
+    }
 
-    return (ttl <= 0);
+    return ttlZero;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "graphics.h"
 #include "definitions.h"
+#include "body.h"
 
 #include <vector>
 #include <random>
@@ -12,7 +13,7 @@ public:
     ~Seed();
 	static bool init(GLuint resolution, Shader shaderInput, std::default_random_engine *generatorInput);
 	void draw(Camera *camera);
-    bool update(GLfloat timeInterval);
+    bool update(GLfloat timeInterval, std::vector<Body *> *fishes);
 
 	b2Body* phisicalBody;
 private:
@@ -20,6 +21,8 @@ private:
 
 	GLfloat color[3];
     GLfloat ttl;
+
+    GLushort category;
 
 	static Shader shader;
 	static GLuint VAO;

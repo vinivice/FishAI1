@@ -15,7 +15,6 @@ GLint Body::resolution;
 std::default_random_engine* Body::generator;
 
 
-//TODO change most of constructor to a method to be used in other constructors
 Body::Body(b2World* world, float32 px, float32 py, float32 angle)
 {
 	this->numberNearThings = 0;
@@ -26,7 +25,10 @@ Body::Body(b2World* world, float32 px, float32 py, float32 angle)
 		this->chromossomes[i] = (unsigned char)distribution(*(this->generator));
 		//std::cout << std::hex << +this->chromossomes[i] << std::endl;
 	}
-
+    sharedConstructor(world, px, py, angle);
+}
+void Body::sharedConstructor(b2World* world, float32 px, float32 py, float32 angle)
+{
 	//Populate translators for easier access
 	this->color[0] = this->chromossomes[2] / 255.0f;
 	this->color[1] = this->chromossomes[3] / 255.0f;
@@ -77,7 +79,7 @@ Body::Body(b2World* world, float32 px, float32 py, float32 angle)
 	bodyFixtureDef.filter.categoryBits = FISH_BODY_CATEGORY;
 	this->phisicalBody->CreateFixture(&bodyFixtureDef);
 
-	//TODO Complete definition of body (add fixture etc)
+	//TODO Complete definition of body (add fixture etc). Done? Can't remember
 }
 
 void Body::createStructures(GLint bodyResolution, std::vector<GLfloat> &vertices, std::vector<GLuint> &innerIndices, std::vector<GLuint> &outerIndices, std::vector<GLuint> &nearSensorIndices, std::vector<GLuint> &eyeIndices)

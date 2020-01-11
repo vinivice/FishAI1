@@ -58,6 +58,7 @@ Seed::Seed(b2World* world, GLubyte* chromossomeInput, GLushort category, GLfloat
 		//std::cout << "ASEX\n";
 	}
 	this->phisicalBody->CreateFixture(&seedFixtureDef);
+    this->ttl = 60.0f;
 
 	
 }
@@ -178,3 +179,10 @@ void Seed::draw(Camera *camera)
 	//clean up
 	glUseProgram(0);
 }
+
+void Seed::update(GLfloat timeInterval)
+{
+    this->ttl -= timeInterval;
+ //   std::cout << ttl << " ttl - " << timeInterval << " s- PERIODO\n";
+}
+

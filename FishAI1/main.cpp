@@ -1,4 +1,5 @@
 #include<iostream>
+#include<chrono>
 
 #if OS == linux
     #include<GL/glew.h>
@@ -258,10 +259,10 @@ int main(int argc, char* argv[])
 	
 	Ring ring(&world, 25.0f, RING_RESOLUTION, ringShader);
 	GLint i;
-	clock_t currentTime, previousTime;
-	currentTime = previousTime = clock();
-	GLfloat timeInterval = 0.0f;
-	//GLfloat loopTime = 0.0f;
+    std::chrono::steady_clock::time_point currentTime;
+    std::chrono::steady_clock::time_point previousTime;
+	currentTime = previousTime = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::duration timeInterval = std::chrono::steady_clock::duration::zero();
 
     bool swapBuffer = true;
 
@@ -269,9 +270,17 @@ int main(int argc, char* argv[])
         std::cout << "PRE LOOP OK\n";
     #endif
 
-	GLfloat period = 1.0f / fps;
+	std::chrono::steady_clock::duration period = std::chrono::microseconds((int)(1000000.0 / fps));
+    double const period_s = period.count() / 1000000000.0;
 	int32 velocityIterations = 6;
 	int32 positionIterations = 2;
+
+    int loopCounter = 0;
+    float Ttotal = 0;
+
+
+    std::cout << timeInterval.count() << "ns\n";
+    std::cout << period.count() << "ns\n";
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -282,7 +291,7 @@ int main(int argc, char* argv[])
 
 
 		glfwPollEvents();
-		currentTime	= clock();
+		currentTime	= std::chrono::steady_clock::now();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -291,8 +300,8 @@ int main(int argc, char* argv[])
             
 		if (!pause)
 		{
-            timeInterval += 1.0 * (currentTime - previousTime) / CLOCKS_PER_SEC; //1.0* just to cast to float. maybe future time scale?
-			while (timeInterval >= period)
+            timeInterval += (currentTime - previousTime); 
+			while (timeInterval.count() >= period.count())
 			{
                 #if SHOW_FPS==1
                     std::cout << (int) (1.0 / timeInterval) << "fps\n";
@@ -309,16 +318,16 @@ int main(int argc, char* argv[])
 						fishes[i]->useRightPropulsor(false);
 					}
 				}
+                for (i = 0; i < seeds.size(); i++)
+                {
+                    seeds[i]->update(period_s);
+                }
 				rForce = lForce = false;
-				world.Step(period, velocityIterations, positionIterations);
-				//std::cout << "Time: " << timeInterval << std::endl; //TEST
+				world.Step(period_s, velocityIterations, positionIterations);
 				timeInterval -= period;
                 swapBuffer = true;
 			}
 		}
-		//std::cout << 1000.0 * (clock() - timeInterval) / CLOCKS_PER_SEC << std::endl;
-		//for(int a = 0; a < 1000000; a++){}
-		//timeInterval = clock();
 		if(drawSensors)
 		{
 			for (i = 0; i < fishes.size(); i++)

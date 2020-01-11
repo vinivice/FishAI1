@@ -515,6 +515,7 @@ void Body::update(b2World *world)
                     if(output.fraction < closestFraction)
                     {
                         closestFraction = output.fraction;
+                        //TODO add closes color here
                     }
                 }
             }

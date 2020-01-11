@@ -236,8 +236,9 @@ int main(int argc, char* argv[])
 	fishes.push_back(new Body(&world, -1.2f, -20.0f, b2_pi / 2.0f));
 
 	Seed::init(SEED_RESOLUTION, Shader(fishVS, fishFS), &generator);
-	seeds.push_back(new Seed(&world, NULL, SEX_SEED_CATEGORY, -1.0f, -10.0f, 0.0f, 0.0f));
-	seeds.push_back(new Seed(&world, NULL, ASEX_SEED_CATEGORY, 1.0f, -10.0f, 10.0f, 0.0f));
+	seeds.push_back(new Seed(&world, NULL, SEX_SEED_CATEGORY, -1.0f, -10.0f, 0.0f, 0.0f, 15.0f));
+	seeds.push_back(new Seed(&world, NULL, SEX_SEED_CATEGORY, 1.0f, 10.0f, 0.0f, 0.0f, 10.0f));
+	seeds.push_back(new Seed(&world, NULL, ASEX_SEED_CATEGORY, 1.0f, -10.0f, 10.0f, 0.0f, 20.0f));
 	//testBody.phisicalBody->SetTransform(b2Vec2(0.0f, 0.0f), 0.0f);
 	//fishes.back()->init(32, bodyShader);
 	//getchar();
@@ -320,7 +321,12 @@ int main(int argc, char* argv[])
 				}
                 for (i = 0; i < seeds.size(); i++)
                 {
-                    seeds[i]->update(period_s);
+                    if(seeds[i]->update(period_s))
+                    {
+                        delete seeds[i];
+                        seeds.erase(seeds.begin()+i);
+                        i--;
+                    }
                 }
 				rForce = lForce = false;
 				world.Step(period_s, velocityIterations, positionIterations);

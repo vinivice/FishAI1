@@ -8,10 +8,11 @@
 class Seed
 {
 public:
-	Seed(b2World* world, GLubyte* chromossomeInput, GLushort category, GLfloat px, GLfloat py, GLfloat vx, GLfloat vy);
+	Seed(b2World* world, GLubyte* chromossomeInput, GLushort category, GLfloat px, GLfloat py, GLfloat vx, GLfloat vy, GLfloat ttl);
+    ~Seed();
 	static bool init(GLuint resolution, Shader shaderInput, std::default_random_engine *generatorInput);
 	void draw(Camera *camera);
-    void update(GLfloat timeInterval);
+    bool update(GLfloat timeInterval);
 
 	b2Body* phisicalBody;
 private:

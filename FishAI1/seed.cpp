@@ -5,7 +5,7 @@ GLuint Seed::VAO;
 GLuint Seed::numberVertices;
 std::default_random_engine* Seed::generator;
 
-Seed::Seed(b2World* world, GLubyte* chromossomeInput, GLushort category, GLfloat px, GLfloat py, GLfloat vx, GLfloat vy)
+Seed::Seed(b2World* world, GLubyte* chromossomeInput, GLushort category, GLfloat px, GLfloat py, GLfloat vx, GLfloat vy, GLfloat ttl)
 {
 	int i;
 	//TODO uncomment
@@ -58,9 +58,15 @@ Seed::Seed(b2World* world, GLubyte* chromossomeInput, GLushort category, GLfloat
 		//std::cout << "ASEX\n";
 	}
 	this->phisicalBody->CreateFixture(&seedFixtureDef);
-    this->ttl = 60.0f;
+    this->ttl = ttl;
 
 	
+}
+
+Seed::~Seed()
+{
+	this->phisicalBody->GetWorld()->DestroyBody(this->phisicalBody);
+    //std::cout << this << " DESTROIED\n";
 }
 
 bool Seed::init(GLuint resolution, Shader shaderInput, std::default_random_engine *generatorInput)
@@ -180,9 +186,13 @@ void Seed::draw(Camera *camera)
 	glUseProgram(0);
 }
 
-void Seed::update(GLfloat timeInterval)
+bool Seed::update(GLfloat timeInterval)
 {
+	b2Transform transform = this->phisicalBody->GetTransform();
     this->ttl -= timeInterval;
  //   std::cout << ttl << " ttl - " << timeInterval << " s- PERIODO\n";
+ //   std::cout << transform.p.x << " , " << transform.p.y << "\n";
+
+    return (ttl <= 0);
 }
 

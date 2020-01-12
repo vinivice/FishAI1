@@ -17,7 +17,6 @@ std::default_random_engine* Body::generator;
 
 Body::Body(b2World* world, float32 px, float32 py, float32 angle)
 {
-	this->numberNearThings = 0;
 	//Random body constructor
 	std::uniform_int_distribution<unsigned short> distribution(0, 255);
 	for (int i = 0; i < CHROMOSSOMES_SIZE; i++)
@@ -27,8 +26,20 @@ Body::Body(b2World* world, float32 px, float32 py, float32 angle)
 	}
     sharedConstructor(world, px, py, angle);
 }
+
+Body::Body(b2World* world, float32 px, float32 py, float32 angle, unsigned char *chromossomes)
+{
+	//Preexisting chromossomes constructor
+	for (int i = 0; i < CHROMOSSOMES_SIZE; i++)
+	{
+		this->chromossomes[i] = chromossomes[i];
+		//std::cout << std::hex << +this->chromossomes[i] << std::endl;
+	}
+    sharedConstructor(world, px, py, angle);
+}
 void Body::sharedConstructor(b2World* world, float32 px, float32 py, float32 angle)
 {
+	this->numberNearThings = 0;
 	//Populate translators for easier access
 	this->color[0] = this->chromossomes[2] / 255.0f;
 	this->color[1] = this->chromossomes[3] / 255.0f;

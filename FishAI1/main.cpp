@@ -232,6 +232,7 @@ int main(int argc, char* argv[])
 	Shader ringShader(ringVS, ringFS);
 	Body::init(BODY_RESOLUTION, Shader(fishVS, fishFS), Shader(eyeVS, eyeFS), &generator);
 	fishes.push_back(new Body(&world, -0.1f, 1.5f, 0.0f));
+	//fishes.push_back(new Body(&world, -5.1f, 1.5f, 0.0f, fishes[0]->chromossomes));
 	fishes.push_back(new Body(&world, -1.2f, 0.0f, b2_pi / 2.0f));
 	fishes.push_back(new Body(&world, -1.2f, -20.0f, b2_pi / 2.0f));
 

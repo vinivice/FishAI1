@@ -14,6 +14,7 @@ public:
 	b2Body * phisicalBody;
 
 	Body(b2World* world, float32 px, float32 py, float32 angle);
+	Body(b2World* world, float32 px, float32 py, float32 angle, unsigned char *chromossomes);
     void sharedConstructor(b2World* world, float32 px, float32 py, float32 angle);
 	static bool init(GLint bodyResolution, Shader shaderInput, Shader eyeShaderInput, std::default_random_engine* gen);
 	void drawBody(Camera* camera);
